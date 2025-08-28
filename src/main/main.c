@@ -26,6 +26,9 @@ GLfloat up[3] = {0.0f, 1.0f, 0.0f};     // „Oben“ ist +Y
 
 int werte[4];
 
+// Kamera werte
+GLfloat spinValue = 0;
+GLfloat spinDirection;
 GLfloat angle = 0.0f;
 
 void init()
@@ -144,6 +147,31 @@ void init()
     glViewport(0, 0, 1200, 800);
 }
 
+// Rotation der Kamera
+GLfloat cameraSpin() {
+    GLfloat spinSpeedModifier = 0.25f;
+
+    // Prüfe Keys und setze werte
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        spinDirection = -1.f;
+        spinValue += (spinValue < 0.1) ? 0.01f : 0.f;
+    } else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        spinDirection = 1.f;
+        spinValue += (spinValue < 0.1) ? 0.01f : 0.f;
+    }
+    
+    // wert verringern für smoothness
+    if(spinValue > 0.f){
+        spinValue -= 0.005f;
+
+        if(spinValue < 0.f){
+           spinValue = 0.f; 
+        }
+    }
+
+    return spinSpeedModifier * spinValue * spinDirection;
+}
+
 void draw()
 {
     // Eventuell auch useProgramm machen bei mehreren Shadern
@@ -152,7 +180,9 @@ void draw()
     // Berechnung der neuen Kameraposition (Rotation um die Y-Achse)
     eye[0] = 3 * cos(angle); // X-Position der Kamera
     eye[2] = 3 * sin(angle); // Z-Position der Kamera
-    angle += 0.01f;          // Rotation der Kamera
+
+    //apply cameraspin
+    angle += cameraSpin();
 
     // TRANSFORMATIONEN Generell
     // 1) Kamera
@@ -189,7 +219,7 @@ int main(void)
     glfwWindowHint(GLFW_DEPTH_BITS, 24); // 24-Bit Tiefenpuffer
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow *window = glfwCreateWindow(1200, 800, "Test Fenster", NULL, NULL);
+    window = glfwCreateWindow(1200, 800, "Test Fenster", NULL, NULL);
 
     if (!window)
     {
