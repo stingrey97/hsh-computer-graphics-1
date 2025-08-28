@@ -39,7 +39,7 @@ void init()
         printf("Error Comipiling vertex shader:");
         GLchar infoLog[1024];
         glGetShaderInfoLog(vertexShader, 1024, NULL, infoLog);
-        printf(infoLog);
+        printf("%s\n", infoLog);
     }
     freeShader(vertexText);
 
@@ -54,7 +54,7 @@ void init()
         printf("Error Comipiling fragment shader:");
         GLchar infoLog[1024];
         glGetShaderInfoLog(fragmentShader, 1024, NULL, infoLog);
-        printf(infoLog);
+        printf("%s\n", infoLog);
     }
     freeShader(fragmentText);
 
@@ -69,7 +69,7 @@ void init()
         printf("ERROR BEIM LINKEN HILFEEE");
         GLchar infoLog[1024];
         glGetProgramInfoLog(program, 1024, NULL, infoLog);
-        printf(infoLog);
+        printf("%s\n", infoLog);
     }
     glValidateProgram(program);
     glGetProgramiv(program, GL_VALIDATE_STATUS, &status);
@@ -78,7 +78,7 @@ void init()
         printf("ERROR BEIM VALIDIEREN HILFEEE");
         GLchar infoLog[1024];
         glGetProgramInfoLog(program, 1024, NULL, infoLog);
-        printf(infoLog);
+        printf("%s\n", infoLog);
     }
     // Einmal den Shader programm aktivieren
     glUseProgram(program);

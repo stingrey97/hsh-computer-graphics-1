@@ -8,4 +8,4 @@ out vec3 vertexColor;
 void main(void){
     vertexColor = aColor;
     gl_Position = projectMatrix * viewMatrix * modelMatrix * vec4(aPosition, 1.0);
-};
+}
