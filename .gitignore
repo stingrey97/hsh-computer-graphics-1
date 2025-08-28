@@ -2,8 +2,8 @@
 makefile
 Makefile
 .DS_Store
-*.out
-
+/compiled
+/compiled/*
 
 # Prerequisites
 *.d
