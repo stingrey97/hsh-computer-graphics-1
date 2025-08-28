@@ -28,7 +28,7 @@ GLfloat angle = 0.0f;
 void init()
 {
     // compile vertex Shader
-    const char *vertexText = loadShader("Shader/Vertex/vertexShader.glsl");
+    const char *vertexText = loadShader("shader/vertex/vertexShader.glsl");
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexText, NULL);
     glCompileShader(vertexShader);
@@ -44,7 +44,7 @@ void init()
     freeShader(vertexText);
 
     // cerate and compile fragment shader
-    const char *fragmentText = loadShader("Shader/Fragment/fragmentShader.glsl");
+    const char *fragmentText = loadShader("shader/fragment/fragmentShader.glsl");
     GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, &fragmentText, NULL);
     glCompileShader(fragmentShader);
@@ -93,11 +93,11 @@ void init()
     identity(projMatrix);
 
     // read lines of OBJ
-    countLinesF("Objects/teapot.obj", werte);
+    countLinesF("objects/teapot.obj", werte);
     GLfloat triangleEcken[werte[3] * 8];
     // lese das OBJ aus und fülle die Vertices
     // 7 Werte pro Vertex: x, y, z, u, v, nx, ny, nz
-    loadOBJ("Objects/teapot.obj", triangleEcken, werte);
+    loadOBJ("objects/teapot.obj", triangleEcken, werte);
 
     GLuint triangleVertexBufferObject; // VBO
     glGenBuffers(1, &triangleVertexBufferObject);
