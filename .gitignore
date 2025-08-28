@@ -2,7 +2,7 @@
 makefile
 Makefile
 .DS_Store
-.out
+*.out
 
 
 # Prerequisites
