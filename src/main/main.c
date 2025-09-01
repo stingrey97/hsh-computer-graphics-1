@@ -6,13 +6,16 @@
 #include "../functions/loadObj.h"
 #include <math.h>
 
-GLuint program;
-GLuint vao;
+// Licht Variablen
+GLint lightPosLoc, viewPosLoc, lightColorLoc, objectColorLoc, ambientLoc, specularLoc, shininessLoc;
 
-GLint modelMatrixLocation;
-GLint viewMatrixLocation;
-GLint projectMatrixLocation;
+// Shader Variablen
+GLuint program, vao;
 
+// Uniform Standorte
+GLint modelMatrixLoc, viewMatrixLoc, projectMatrixLoc;
+
+// Matrizen
 GLfloat modelMatrix[16];
 GLfloat viewMatrix[16];
 GLfloat projMatrix[16];
@@ -83,16 +86,33 @@ void init()
     // Einmal den Shader programm aktivieren
     glUseProgram(program);
 
-    // einmal die Location holen
-    modelMatrixLocation = glGetUniformLocation(program, "modelMatrix");
-    viewMatrixLocation = glGetUniformLocation(program, "viewMatrix");
-    projectMatrixLocation = glGetUniformLocation(program, "projectMatrix");
+    // einmal die Location holen Matrizen
+    modelMatrixLoc = glGetUniformLocation(program, "modelMatrix");
+    viewMatrixLoc = glGetUniformLocation(program, "viewMatrix");
+    projectMatrixLoc = glGetUniformLocation(program, "projectMatrix");
 
     identity(modelMatrix);
     identity(viewMatrix);
     identity(projMatrix);
 
-    // read lines of OBJ
+    // neue Uniforms für Licht/Material
+    lightPosLoc = glGetUniformLocation(program, "lightPos");
+    viewPosLoc = glGetUniformLocation(program, "viewPos");
+    lightColorLoc = glGetUniformLocation(program, "lightColor");
+    objectColorLoc = glGetUniformLocation(program, "objectColor");
+    ambientLoc = glGetUniformLocation(program, "ambientStrength");
+    specularLoc = glGetUniformLocation(program, "specularStrength");
+    shininessLoc = glGetUniformLocation(program, "shininess");
+
+    // sinnvolle Startwerte
+    glUniform3f(lightPosLoc, 2.0f, 3.0f, 2.0f);      // Position des Lichts
+    glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f);    // weißes Licht
+    glUniform3f(objectColorLoc, 1.0f, 0.85f, 0.75f); // Materialfarbe (Beispiel)
+    glUniform1f(ambientLoc, 0.20f);                  // Grundhelligkeit
+    glUniform1f(specularLoc, 0.50f);                 // Glanzstärke
+    glUniform1f(shininessLoc, 32.0f);                // Glanzgröße
+
+    // read lines of OBJ4
     countLinesF("objects/teapot.obj", werte);
     GLfloat triangleEcken[werte[3] * 8];
     // lese das OBJ aus und fülle die Vertices
@@ -126,29 +146,34 @@ void init()
 
 void draw()
 {
+    // Eventuell auch useProgramm machen bei mehreren Shadern
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     // Berechnung der neuen Kameraposition (Rotation um die Y-Achse)
     eye[0] = 3 * cos(angle); // X-Position der Kamera
     eye[2] = 3 * sin(angle); // Z-Position der Kamera
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    angle += 0.01f;          // Rotation der Kamera
 
     // TRANSFORMATIONEN Generell
     // 1) Kamera
     lookAt(viewMatrix, eye, center, up);
-    glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, viewMatrix);
+    glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, viewMatrix);
 
     // 2) Perspektive
     perspective(projMatrix, 45.0f * (3.14159265358979323846 / 180.0f), 1200.0f / 800.0f, 0.1f, 100.0f);
-    glUniformMatrix4fv(projectMatrixLocation, 1, GL_FALSE, projMatrix);
+    glUniformMatrix4fv(projectMatrixLoc, 1, GL_FALSE, projMatrix);
 
+    // 3) Modell
     identity(modelMatrix);
     scale(modelMatrix, modelMatrix, (GLfloat[]){0.25f, 0.25f, 0.25f});
-    // draw Würfel
+    glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, modelMatrix);
 
-    glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, modelMatrix);
+    // Licht viewPostion anpassen durch die Rotation
+    glUniform3f(viewPosLoc, eye[0], eye[1], eye[2]);
+
+    // Draw Call
     glBindVertexArray(vao); // bind vao
     glDrawArrays(GL_TRIANGLES, 0, werte[3]);
-    angle += 0.01f; // Rotation der Kamera
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
