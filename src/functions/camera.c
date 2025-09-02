@@ -59,5 +59,5 @@ void Camera(WindowData winData) {
     // Strafe left
     if (glfwGetKey(winData.window, GLFW_KEY_LEFT ) == GLFW_PRESS){
         position -= right * deltaTime * speed;
-}
+    }
 }
