@@ -4,9 +4,16 @@
 #include "../functions/matrixUtils.h"
 #include "../functions/loadShader.h"
 #include "../functions/loadObj.h"
+#include "../functions/camera.h"
 #include <math.h>
 
 // windows
+struct windowData{
+    GLFWwindow * window;
+    int xWindowSize;
+    int yWindowSize;
+};
+WindowData windowData;
 GLFWwindow * window;
 
 // Licht Variablen
@@ -16,14 +23,14 @@ GLint lightPosLoc, viewPosLoc, lightColorLoc, objectColorLoc, ambientLoc, specul
 GLuint program, vao;
 
 // Uniform Standorte
-GLint modelMatrixLoc, viewMatrixLoc, projectMatrixLoc;
+GLint modelMatrixLoc, viewMatrixLoc, PVLoc;
 
 // Matrizen
 GLfloat modelMatrix[16];
 GLfloat viewMatrix[16];
 GLfloat projMatrix[16];
 
-GLfloat eye[3] = {0.0f, 0.0f, 100.0f};    // Kamera 3 Einheiten vor dem Ursprung
+GLfloat eye[3] = {0.0f, 0.0f, 5.0f};    // Kamera 3 Einheiten vor dem Ursprung
 GLfloat center[3] = {0.0f, 0.0f, 0.0f}; // Blick auf den Ursprung
 GLfloat up[3] = {0.0f, 1.0f, 0.0f};     // „Oben“ ist +Y
 
@@ -33,8 +40,6 @@ int werte[4];
 GLfloat spinValue = 0;
 GLfloat spinDirection;
 GLfloat angle = 0.0f;
-
-GLfloat orbitRadius = 30.0f;
 
 void init()
 {
@@ -96,11 +101,11 @@ void init()
 
     // einmal die Location holen Matrizen
     modelMatrixLoc = glGetUniformLocation(program, "modelMatrix");
-    viewMatrixLoc = glGetUniformLocation(program, "viewMatrix");
-    projectMatrixLoc = glGetUniformLocation(program, "projectMatrix");
+    //viewMatrixLoc = glGetUniformLocation(program, "viewMatrix");
+    PVLoc = glGetUniformLocation(program, "PV");
 
-    identity(modelMatrix);
-    identity(viewMatrix);
+    //identity(modelMatrix);
+    //identity(viewMatrix);
     identity(projMatrix);
 
     // neue Uniforms für Licht/Material
@@ -121,11 +126,11 @@ void init()
     glUniform1f(shininessLoc, 32.0f);                // Glanzgröße
 
     // read lines of OBJ4
-    countLinesF("objects/Column_Triangle.obj", werte);
+    countLinesF("objects/teapot.obj", werte);
     GLfloat triangleEcken[werte[3] * 8];
     // lese das OBJ aus und fülle die Vertices
     // 7 Werte pro Vertex: x, y, z, u, v, nx, ny, nz
-    loadOBJ("objects/Column_Triangle.obj", triangleEcken, werte);
+    loadOBJ("objects/teapot.obj", triangleEcken, werte);
 
     GLuint triangleVertexBufferObject; // VBO
     glGenBuffers(1, &triangleVertexBufferObject);
@@ -152,20 +157,55 @@ void init()
     glViewport(0, 0, 1200, 800);
 }
 
+// Rotation der Kamera
+GLfloat cameraSpin() {
+    GLfloat spinSpeedModifier = 0.25f;
+
+    // Prüfe Keys und setze werte
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        spinDirection = -1.f;
+        spinValue += (spinValue < 0.1) ? 0.01f : 0.f;
+    } else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        spinDirection = 1.f;
+        spinValue += (spinValue < 0.1) ? 0.01f : 0.f;
+    }
+    
+    // wert verringern für smoothness
+    if(spinValue > 0.f){
+        spinValue -= 0.005f;
+
+        if(spinValue < 0.f){
+           spinValue = 0.f; 
+        }
+    }
+
+    return spinSpeedModifier * spinValue * spinDirection;
+}
+
 void draw()
 {
     // Eventuell auch useProgramm machen bei mehreren Shadern
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // Berechnung der neuen Kameraposition (Rotation um die Y-Achse)
+    eye[0] = 3 * cos(angle); // X-Position der Kamera
+    eye[2] = 3 * sin(angle); // Z-Position der Kamera
+
+    //apply cameraspin
+    angle += cameraSpin();
+
     // TRANSFORMATIONEN Generell
     // 1) Kamera
-    lookAt(viewMatrix, eye, center, up);
-    glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, viewMatrix);
+    //lookAt(viewMatrix, eye, center, up);
+    //glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, viewMatrix);
 
     // 2) Perspektive
-    perspective(projMatrix, 45.0f * (3.14159265358979323846 / 180.0f), 1200.0f / 800.0f, 0.1f, 100.0f);
-    glUniformMatrix4fv(projectMatrixLoc, 1, GL_FALSE, projMatrix);
+    //perspective(projMatrix, 45.0f * (3.14159265358979323846 / 180.0f), 1200.0f / 800.0f, 0.1f, 100.0f);
+    
+    GLfloat PV[16];
+    Camera(PV, windowData);
 
+    glUniformMatrix4fv(PVLoc, 1, GL_FALSE, PV);
     // 3) Modell
     identity(modelMatrix);
     scale(modelMatrix, modelMatrix, (GLfloat[]){0.25f, 0.25f, 0.25f});
@@ -192,7 +232,10 @@ int main(void)
     glfwWindowHint(GLFW_DEPTH_BITS, 24); // 24-Bit Tiefenpuffer
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    windowData.xWindowSize = 1200.f;
+    windowData.yWindowSize = 800.f;
     window = glfwCreateWindow(1200, 800, "Test Fenster", NULL, NULL);
+    windowData.window = &window;
 
     if (!window)
     {

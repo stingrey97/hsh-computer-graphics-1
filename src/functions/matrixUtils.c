@@ -48,6 +48,18 @@ void dot3f(GLfloat *out, const GLfloat *a, const GLfloat *b)
     *out = a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
+void multiply3f(GLfloat *out, const GLfloat *vec, const GLfloat a){
+    out[0] = vec[0] * a; 
+    out[1] = vec[1] * a;
+    out[2] = vec[2] * a;
+}
+
+void multiply3f2(GLfloat *out, const GLfloat *vec, const GLfloat a, const GLfloat b){
+    out[0] = vec[0] * a * b; 
+    out[1] = vec[1] * a * b;
+    out[2] = vec[2] * a * b;
+}
+
 void plus3f(GLfloat *out, const GLfloat *v1, const GLfloat *v2)
 {
     out[0] = v1[0] + v2[0];

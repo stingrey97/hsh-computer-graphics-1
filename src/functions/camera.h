@@ -11,6 +11,6 @@ typedef struct{
 } WindowData;
 
 extern WindowData windowData;
-
+extern void Camera(GLfloat *out, WindowData winData);
 //extern void loadOBJ(const char *filename, GLfloat *out, int *werte);
 # endif

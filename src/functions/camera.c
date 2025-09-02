@@ -2,12 +2,18 @@
 #include <GLFW/glfw3.h>
 #include <stdio.h>
 #include "camera.h"
+#include "matrixUtils.h"
 
 // MousePositions
 int xMousePos;
 int yMousePos;
 
+// for deltaTime
 double lastTime;
+
+// glowballs
+GLfloat PerspektiveMatrix[16];
+GLfloat ViewMatrix[16];
 
 // position
 GLfloat position[3] = { 0, 0, 5 };
@@ -24,7 +30,7 @@ GLfloat initialFoV = 45.0f;
 GLfloat speed = 3.0f; // 3 units / second
 GLfloat mouseSpeed = 0.005f;
 
-void Camera(WindowData winData) {
+void Camera(GLfloat *out, WindowData winData) {
     glfwGetMousePos(&xMousePos, &yMousePos);
     glfwSetMousePos(winData.xWindowSize/2, winData.yWindowSize/2);
 
@@ -44,20 +50,46 @@ void Camera(WindowData winData) {
         cos(verticalAngle) * cos(horizontalAngle)
     };
 
+    GLfloat right[3] = {
+        sin(horizontalAngle - 3.14f/2.0f),
+        0,
+        cos(horizontalAngle - 3.14f/2.0f)
+    };
+
     // Move forward
     if (glfwGetKey(winData.window, GLFW_KEY_UP ) == GLFW_PRESS){
-        position += direction * deltaTime * speed;
+        GLfloat dir[3];
+        multiply3f2(dir, direction, deltaTime, speed);
+        plus3f(position, position, dir);
     }
     // Move backward
     if (glfwGetKey(winData.window, GLFW_KEY_DOWN ) == GLFW_PRESS){
-        position -= direction * deltaTime * speed;
+        GLfloat dir[3];
+        multiply3f2(dir, direction, deltaTime, speed);
+        minus3f(position, position, dir);
     }
     // Strafe right
     if (glfwGetKey(winData.window, GLFW_KEY_RIGHT ) == GLFW_PRESS){
-        position += right * deltaTime * speed;
+        GLfloat ri[3];
+        multiply3f2(ri, right, deltaTime, speed);
+        plus3f(position, position, ri);
     }
     // Strafe left
     if (glfwGetKey(winData.window, GLFW_KEY_LEFT ) == GLFW_PRESS){
-        position -= right * deltaTime * speed;
+        GLfloat ri[3];
+        multiply3f2(ri, right, deltaTime, speed);
+        minus3f(position, position, ri);
     }
+
+    GLfloat FoV = initialFoV - (GLfloat)(5 * glfwGetMouseWheel());
+
+    perspective(PerspektiveMatrix, FoV, winData.xWindowSize / winData.yWindowSize, 0.1f, 100.0f);
+
+    plus3f(direction, direction, position);
+    GLfloat up[3];
+    cross3f(up, right, direction),
+
+    lookAt(ViewMatrix, position, direction, up);
+
+    mat4f_mul_mat4f(out, PerspektiveMatrix, ViewMatrix);
 }
