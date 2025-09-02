@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "../functions/translation.h"
+#include "../functions/matrixUtils.h"
 #include "../functions/loadShader.h"
 #include "../functions/loadObj.h"
 #include <math.h>

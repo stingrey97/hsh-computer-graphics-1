@@ -1,0 +1,111 @@
+#ifndef MATRIX_UTILS_H
+#define MATRIX_UTILS_H
+
+#include <GL/glew.h>
+
+/**
+ * Fehlerkonstante für Werte nahe Null.
+ */
+#define EPS 1e-6f
+
+/**
+ * Multipliziert zwei 4x4 Matrizen
+ */
+extern void mat4f_mul_mat4f(GLfloat *out, const GLfloat *left, const GLfloat *right);
+
+/**
+ * Multipliziert eine 4x4 Matrix mit einem 4-elementigen Vektor
+ */
+extern void mat4f_mul_vec4f(GLfloat *out, const GLfloat *mat, const GLfloat *vec);
+
+/**
+ * Multipliziert zwei 3-elementige Vektoren miteinander
+ */
+extern void dot3f(GLfloat *out, const GLfloat *a, const GLfloat *b);
+
+/**
+ * Addiert zwei 3-elementige Vektoren
+ */
+extern void plus3f(GLfloat *out, const GLfloat *v1, const GLfloat *v2);
+
+/**
+ * Subtrahiert zwei 3-elementige Vektoren
+ */
+extern void minus3f(GLfloat *out, const GLfloat *v1, const GLfloat *v2);
+
+/**
+ * Normalisiert einen 3-elemetigen Vektor
+ */
+extern void norm3f(GLfloat *out, const GLfloat *vec);
+
+/**
+ * Berechnet die Länge eines 3-elemetigen Vektors
+ */
+extern GLfloat len3f(const GLfloat *vec);
+
+/**
+ * Berechnet das Kreuzprodukt von zwei 3-elementigen Vektoren
+ */
+extern void cross3f(GLfloat *out, const GLfloat *v1, const GLfloat *v2);
+
+/**
+ * Gibt einen Vektor der Länge n auf der Konsole aus
+ */
+extern void printVecN(const GLfloat *vec, const int n);
+
+/**
+ * Gibt einen Vektor der Länge 3 auf der Konsole aus
+ */
+extern void printVec3(const GLfloat *vec);
+
+/**
+ * Gibt einen Vektor der Länge 4 auf der Konsole aus
+ */
+extern void printVec4(const GLfloat *vec);
+
+/**
+ * Gibt eine 4x4 Matrix auf der Konsole aus
+ */
+extern void printMat4(const GLfloat *mat);
+
+/**
+ * 4x4 Einheitsmatrix
+ */
+extern void identity(GLfloat *out);
+
+/**
+ * 4x4 Translationsmatrix
+ */
+extern void translate(GLfloat *out, const GLfloat *in, const GLfloat *v);
+
+/**
+ * 4x4 Skalierungsmatrix
+ */
+extern void scale(GLfloat *out, const GLfloat *in, const GLfloat *v);
+
+/**
+ * 4x4 Rotationsmatrix um X achse
+ */
+extern void rotateX(GLfloat *out, const GLfloat *in, const GLfloat angle);
+
+/**
+ * 4x4 Rotationsmatrix um Y achse
+ */
+extern void rotateY(GLfloat *out, const GLfloat *in, const GLfloat angle);
+
+/**
+ * 4x4 Rotationsmatrix um Z achse
+ */
+extern void rotateZ(GLfloat *out, const GLfloat *in, const GLfloat angle);
+
+/**
+ * Berechnet die Viewmatrix für die vorgegebenen Kamera-Koordinaten.
+ */
+extern void lookAt(GLfloat *out, const GLfloat *eye, const GLfloat *look, const GLfloat *up);
+
+/**
+ * TODO
+ */
+extern void perspective(GLfloat *out, GLfloat const fovy, GLfloat const aspect, GLfloat const near, GLfloat const far);
+
+#endif
