@@ -23,7 +23,7 @@ GLfloat modelMatrix[16];
 GLfloat viewMatrix[16];
 GLfloat projMatrix[16];
 
-GLfloat eye[3] = {0.0f, 0.0f, 5.0f};    // Kamera 3 Einheiten vor dem Ursprung
+GLfloat eye[3] = {0.0f, 0.0f, 100.0f};    // Kamera 3 Einheiten vor dem Ursprung
 GLfloat center[3] = {0.0f, 0.0f, 0.0f}; // Blick auf den Ursprung
 GLfloat up[3] = {0.0f, 1.0f, 0.0f};     // „Oben“ ist +Y
 
@@ -33,6 +33,8 @@ int werte[4];
 GLfloat spinValue = 0;
 GLfloat spinDirection;
 GLfloat angle = 0.0f;
+
+GLfloat orbitRadius = 30.0f;
 
 void init()
 {
@@ -150,42 +152,10 @@ void init()
     glViewport(0, 0, 1200, 800);
 }
 
-// Rotation der Kamera
-GLfloat cameraSpin() {
-    GLfloat spinSpeedModifier = 0.25f;
-
-    // Prüfe Keys und setze werte
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        spinDirection = -1.f;
-        spinValue += (spinValue < 0.1) ? 0.01f : 0.f;
-    } else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        spinDirection = 1.f;
-        spinValue += (spinValue < 0.1) ? 0.01f : 0.f;
-    }
-    
-    // wert verringern für smoothness
-    if(spinValue > 0.f){
-        spinValue -= 0.005f;
-
-        if(spinValue < 0.f){
-           spinValue = 0.f; 
-        }
-    }
-
-    return spinSpeedModifier * spinValue * spinDirection;
-}
-
 void draw()
 {
     // Eventuell auch useProgramm machen bei mehreren Shadern
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Berechnung der neuen Kameraposition (Rotation um die Y-Achse)
-    eye[0] = 3 * cos(angle); // X-Position der Kamera
-    eye[2] = 3 * sin(angle); // Z-Position der Kamera
-
-    //apply cameraspin
-    angle += cameraSpin();
 
     // TRANSFORMATIONEN Generell
     // 1) Kamera
