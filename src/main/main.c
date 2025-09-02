@@ -6,6 +6,9 @@
 #include "../functions/loadObj.h"
 #include <math.h>
 
+// windows
+GLFWwindow * window;
+
 // Licht Variablen
 GLint lightPosLoc, viewPosLoc, lightColorLoc, objectColorLoc, ambientLoc, specularLoc, shininessLoc;
 
