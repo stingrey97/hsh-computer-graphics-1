@@ -121,11 +121,11 @@ void init()
     glUniform1f(shininessLoc, 32.0f);                // Glanzgröße
 
     // read lines of OBJ4
-    countLinesF("objects/teapot.obj", werte);
+    countLinesF("objects/Column_Triangle.obj", werte);
     GLfloat triangleEcken[werte[3] * 8];
     // lese das OBJ aus und fülle die Vertices
     // 7 Werte pro Vertex: x, y, z, u, v, nx, ny, nz
-    loadOBJ("objects/teapot.obj", triangleEcken, werte);
+    loadOBJ("objects/Column_Triangle.obj", triangleEcken, werte);
 
     GLuint triangleVertexBufferObject; // VBO
     glGenBuffers(1, &triangleVertexBufferObject);
