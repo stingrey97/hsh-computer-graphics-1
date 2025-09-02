@@ -104,9 +104,9 @@ void init()
     //viewMatrixLoc = glGetUniformLocation(program, "viewMatrix");
     PVLoc = glGetUniformLocation(program, "PV");
 
-    //identity(modelMatrix);
+    identity(modelMatrix);
     //identity(viewMatrix);
-    identity(projMatrix);
+    //identity(projMatrix);
 
     // neue Uniforms für Licht/Material
     lightPosLoc = glGetUniformLocation(program, "lightPos");
@@ -157,42 +157,10 @@ void init()
     glViewport(0, 0, 1200, 800);
 }
 
-// Rotation der Kamera
-GLfloat cameraSpin() {
-    GLfloat spinSpeedModifier = 0.25f;
-
-    // Prüfe Keys und setze werte
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        spinDirection = -1.f;
-        spinValue += (spinValue < 0.1) ? 0.01f : 0.f;
-    } else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        spinDirection = 1.f;
-        spinValue += (spinValue < 0.1) ? 0.01f : 0.f;
-    }
-    
-    // wert verringern für smoothness
-    if(spinValue > 0.f){
-        spinValue -= 0.005f;
-
-        if(spinValue < 0.f){
-           spinValue = 0.f; 
-        }
-    }
-
-    return spinSpeedModifier * spinValue * spinDirection;
-}
-
 void draw()
 {
     // Eventuell auch useProgramm machen bei mehreren Shadern
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Berechnung der neuen Kameraposition (Rotation um die Y-Achse)
-    eye[0] = 3 * cos(angle); // X-Position der Kamera
-    eye[2] = 3 * sin(angle); // Z-Position der Kamera
-
-    //apply cameraspin
-    angle += cameraSpin();
 
     // TRANSFORMATIONEN Generell
     // 1) Kamera
@@ -203,7 +171,7 @@ void draw()
     //perspective(projMatrix, 45.0f * (3.14159265358979323846 / 180.0f), 1200.0f / 800.0f, 0.1f, 100.0f);
     
     GLfloat PV[16];
-    Camera(PV, windowData);
+    camera(PV, windowData);
 
     glUniformMatrix4fv(PVLoc, 1, GL_FALSE, PV);
     // 3) Modell
@@ -235,7 +203,7 @@ int main(void)
     windowData.xWindowSize = 1200.f;
     windowData.yWindowSize = 800.f;
     window = glfwCreateWindow(1200, 800, "Test Fenster", NULL, NULL);
-    windowData.window = &window;
+    windowData.window = window;
 
     if (!window)
     {

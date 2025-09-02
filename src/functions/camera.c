@@ -3,10 +3,11 @@
 #include <stdio.h>
 #include "camera.h"
 #include "matrixUtils.h"
+#include <math.h>
 
 // MousePositions
-int xMousePos;
-int yMousePos;
+double xMousePos;
+double yMousePos;
 
 // for deltaTime
 double lastTime;
@@ -30,9 +31,10 @@ GLfloat initialFoV = 45.0f;
 GLfloat speed = 3.0f; // 3 units / second
 GLfloat mouseSpeed = 0.005f;
 
-void Camera(GLfloat *out, WindowData winData) {
-    glfwGetMousePos(&xMousePos, &yMousePos);
-    glfwSetMousePos(winData.xWindowSize/2, winData.yWindowSize/2);
+void camera(GLfloat *out, WindowData winData) {
+    glfwGetCursorPos(winData.window, &xMousePos, &yMousePos);
+
+    glfwSetCursorPos(winData.window, winData.xWindowSize/2, winData.yWindowSize/2);
 
     //deltaTime
     double currentTime = glfwGetTime();
@@ -81,7 +83,7 @@ void Camera(GLfloat *out, WindowData winData) {
         minus3f(position, position, ri);
     }
 
-    GLfloat FoV = initialFoV - (GLfloat)(5 * glfwGetMouseWheel());
+    GLfloat FoV = initialFoV - (GLfloat)(5 * 1);
 
     perspective(PerspektiveMatrix, FoV, winData.xWindowSize / winData.yWindowSize, 0.1f, 100.0f);
 
