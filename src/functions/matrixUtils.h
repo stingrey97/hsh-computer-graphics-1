@@ -23,6 +23,10 @@ extern void mat4f_mul_mat4f(GLfloat *out, const GLfloat *left, const GLfloat *ri
  */
 extern void mat4f_mul_vec4f(GLfloat *out, const GLfloat *mat, const GLfloat *vec);
 
+extern void multiply3f(GLfloat *out, const GLfloat *vec, const GLfloat a);
+
+extern void multiply3f2(GLfloat *out, const GLfloat *vec, const GLfloat a, const GLfloat b);
+
 /**
  * Multipliziert zwei 3-elementige Vektoren miteinander
  */
