@@ -5,43 +5,23 @@
 #include "../functions/loadShader.h"
 #include "../functions/mesh.h"
 #include "../functions/drawUtils.h"
+#include "../functions/lightUtils.h"
 #include <math.h>
 
 // windows
 GLFWwindow *window;
 
-// --- Material (struct Material material) ---
-GLint uMat_emission;  // "material.emission"
-GLint uMat_ambient;   // "material.ambient"
-GLint uMat_diffuse;   // "material.diffuse"
-GLint uMat_specular;  // "material.specular"
-GLint uMat_shininess; // "material.shininess"
+//Material (struct Material material)
+GLint uMat_emission, uMat_ambient, uMat_diffuse, uMat_specular, uMat_shininess;
 
-// --- Richtungslicht (struct lightSourceR richtungslicht) ---
-GLint uSun_enabled;   // "richtungslicht.enabled"
-GLint uSun_direction; // "richtungslicht.direction"
-GLint uSun_ambient;   // "richtungslicht.ambient"
-GLint uSun_diffuse;   // "richtungslicht.diffuse"
-GLint uSun_specular;  // "richtungslicht.specular"
+//Richtungslicht (struct lightSourceR richtungslicht)
+GLint uSun_enabled, uSun_direction, uSun_ambient, uSun_diffuse, uSun_specular;
 
-// --- Punktlicht (struct lightSourceP punktlicht) ---
-GLint uLamp_enabled;   // "punktlicht.enabled"
-GLint uLamp_position;  // "punktlicht.position"
-GLint uLamp_ambient;   // "punktlicht.ambient"
-GLint uLamp_diffuse;   // "punktlicht.diffuse"
-GLint uLamp_specular;  // "punktlicht.specular"
-GLint uLamp_linear;    // "punktlicht.linear"
-GLint uLamp_quadratic; // "punktlicht.quadratic"
+//Punktlicht (struct lightSourceP punktlicht)
+GLint uLamp_enabled, uLamp_position, uLamp_ambient, uLamp_diffuse, uLamp_specular, uLamp_linear, uLamp_quadratic;
 
-// Spotlicht
-GLint uSpot_enabled;
-GLint uSpot_position;  // vec3
-GLint uSpot_direction; // vec3
-GLint uSpot_innerCone; // float (radians)
-GLint uSpot_outerCone; // float (radians)
-GLint uSpot_ambient;   // vec4
-GLint uSpot_diffuse;   // vec4
-GLint uSpot_specular;  // vec4
+// Spotlicht (struct lightSourceS spotlicht)
+GLint uSpot_enabled, uSpot_position, uSpot_direction, uSpot_innerCone, uSpot_outerCone, uSpot_ambient, uSpot_diffuse, uSpot_specular;
 
 // Shader Variablen
 GLuint program, vao;
@@ -205,36 +185,14 @@ void init()
     glUniform1i(uSpot_enabled, 1);
 
     // Richtungslicht
-    glUniform3f(uSun_direction, 5.0f, 5.0f, 0.0f);
-    glUniform4f(uSun_ambient, 0.35f, 0.35f, 0.35f, 1.0f);
-    glUniform4f(uSun_diffuse, 1.0f, 1.0f, 1.0f, 1.0f);
-    glUniform4f(uSun_specular, 1.0f, 1.0f, 1.0f, 1.0f); // Glanz
+    initializeDirectionalLight(uSun_ambient, uSun_diffuse, uSun_specular);
+    glUniform3f(uSun_direction, 5.0f, 5.0f, 0.0f); // in draw call
 
     // Punktlicht
-    GLfloat lightW[3] = {2.0f, 2.0f, 5.0f};
-    GLfloat lightV[3];
-    transform_point_view(lightV, viewMatrix, lightW);
-    glUniform4f(uLamp_position, lightV[0], lightV[1], lightV[2], 1.0f);
-    // Farben
-    glUniform4f(uLamp_ambient, 0.2f, 0.2f, 0.2f, 1.0f);
-    glUniform4f(uLamp_diffuse, 1.0f, 1.0f, 1.0f, 1.0f);
-    glUniform4f(uLamp_specular, 1.0f, 1.0f, 1.0f, 1.0f);
-    // Abschwächung (ruhig sanft)
-    glUniform1f(uLamp_linear, 0.007f);
-    glUniform1f(uLamp_quadratic, 0.0017f);
+    initializePointLight(uLamp_ambient, uLamp_diffuse, uLamp_specular, uLamp_linear, uLamp_quadratic);
 
     // Spotlicht
-    // Farben (weißes Spotlicht)
-    glUniform4f(uSpot_ambient, 0.10f, 0.10f, 0.10f, 1.0f);
-    glUniform4f(uSpot_diffuse, 1.00f, 1.00f, 1.00f, 1.0f);
-    glUniform4f(uSpot_specular, 1.00f, 1.00f, 1.00f, 1.0f);
-
-    // Winkel in RADIANT (z. B. 12° / 20°)
-    float innerDeg = 12.0f, outerDeg = 20.0f;
-    float innerRad = innerDeg * (float)M_PI / 180.0f;
-    float outerRad = outerDeg * (float)M_PI / 180.0f;
-    glUniform1f(uSpot_innerCone, innerRad);
-    glUniform1f(uSpot_outerCone, outerRad);
+    initializeSpotLight(uSpot_ambient, uSpot_diffuse, uSpot_specular, uSpot_innerCone, uSpot_outerCone);
 
     loadMesh("objects/teapot.obj", &teapot);
     loadMesh("objects/column.obj", &column);
