@@ -7,14 +7,8 @@
 #include "../functions/camera.h"
 #include <math.h>
 
-// windows
-struct windowData{
-    GLFWwindow * window;
-    int xWindowSize;
-    int yWindowSize;
-};
+// windowData
 WindowData windowData;
-GLFWwindow * window;
 
 // Licht Variablen
 GLint lightPosLoc, viewPosLoc, lightColorLoc, objectColorLoc, ambientLoc, specularLoc, shininessLoc;
@@ -30,19 +24,36 @@ GLfloat modelMatrix[16];
 GLfloat viewMatrix[16];
 GLfloat projMatrix[16];
 
-GLfloat eye[3] = {0.0f, 0.0f, 5.0f};    // Kamera 3 Einheiten vor dem Ursprung
-GLfloat center[3] = {0.0f, 0.0f, 0.0f}; // Blick auf den Ursprung
+GLfloat eye[3] = {5.0f, 0.0f, 0.0f};   // position, Kamera 3 Einheiten vor dem Ursprung
+GLfloat center[3] = {0.0f, 0.0f, 0.0f};  // direction,  Blick auf den Ursprung
 GLfloat up[3] = {0.0f, 1.0f, 0.0f};     // „Oben“ ist +Y
 
 int werte[4];
 
-// Kamera werte
-GLfloat spinValue = 0;
-GLfloat spinDirection;
-GLfloat angle = 0.0f;
+void framebuffer_size_callback(GLFWwindow *window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
 
 void init()
 {
+    // camera Stuff.
+    initCamera(windowData);
+    windowData.cameraData.startDirection[0] = center[0];
+    windowData.cameraData.startDirection[1] = center[1];
+    windowData.cameraData.startDirection[2] = center[2];
+    windowData.cameraData.startPosition[0] = eye[0];
+    windowData.cameraData.startPosition[1] = eye[1];
+    windowData.cameraData.startPosition[2] = eye[2];
+    windowData.cameraData.startUp[0] = up[0];
+    windowData.cameraData.startUp[1] = up[1];
+    windowData.cameraData.startUp[2] = up[2];
+    windowData.cameraData.FoV = 45.f;
+    windowData.cameraData.mouseSpeed = 0.05f;
+    windowData.cameraData.speed = 3.f;
+    windowData.cameraData.startHorizontal = 4.712f;
+    windowData.cameraData.startVertical = 0.f;
+
     // compile vertex Shader
     const char *vertexText = loadShader("shader/vertex/vertexShader.glsl");
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -101,7 +112,6 @@ void init()
 
     // einmal die Location holen Matrizen
     modelMatrixLoc = glGetUniformLocation(program, "modelMatrix");
-    //viewMatrixLoc = glGetUniformLocation(program, "viewMatrix");
     PVLoc = glGetUniformLocation(program, "PV");
 
     identity(modelMatrix);
@@ -154,27 +164,20 @@ void init()
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glViewport(0, 0, 1200, 800);
+    //glViewport(0, 0, 1200, 800);
 }
 
 void draw()
 {
     // Eventuell auch useProgramm machen bei mehreren Shadern
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // TRANSFORMATIONEN Generell
-    // 1) Kamera
-    //lookAt(viewMatrix, eye, center, up);
-    //glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, viewMatrix);
-
-    // 2) Perspektive
-    //perspective(projMatrix, 45.0f * (3.14159265358979323846 / 180.0f), 1200.0f / 800.0f, 0.1f, 100.0f);
     
+    // 1) Perspective- and ViewMatrix
     GLfloat PV[16];
     camera(PV, windowData);
-
     glUniformMatrix4fv(PVLoc, 1, GL_FALSE, PV);
-    // 3) Modell
+
+    // 2) Modell
     identity(modelMatrix);
     scale(modelMatrix, modelMatrix, (GLfloat[]){0.25f, 0.25f, 0.25f});
     glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, modelMatrix);
@@ -187,41 +190,38 @@ void draw()
     glDrawArrays(GL_TRIANGLES, 0, werte[3]);
 }
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height)
-{
-    glViewport(0, 0, width, height);
-}
-
 int main(void)
 {
     glfwInit();
+
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_DEPTH_BITS, 24); // 24-Bit Tiefenpuffer
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    // set Windowsize
     windowData.xWindowSize = 1200.f;
     windowData.yWindowSize = 800.f;
-    window = glfwCreateWindow(1200, 800, "Test Fenster", NULL, NULL);
-    windowData.window = window;
 
-    if (!window)
+    windowData.window = glfwCreateWindow((int)windowData.xWindowSize, (int)windowData.yWindowSize, "CG-1 Projekt", NULL, NULL);
+
+    if (!windowData.window)
     {
         printf("FEHLER BEIM FENSTER ERSTELLEN");
         glfwTerminate();
         return -1;
     }
 
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(windowData.window, framebuffer_size_callback);
+    glfwMakeContextCurrent(windowData.window);
     glewInit();
-
+    
     init();
 
-    while (!glfwWindowShouldClose(window))
+    while (!glfwWindowShouldClose(windowData.window))
     {
         draw();
-        glfwSwapBuffers(window);
+        glfwSwapBuffers(windowData.window);
         glfwPollEvents();
     }
 
