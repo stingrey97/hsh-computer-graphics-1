@@ -1,22 +1,21 @@
 #version 330 core
-layout (location =0) in vec3 aPosition;     // Positionen aus dem VBO
-layout (location =1) in vec3 aNormal;       // Normalen aus dem VBO
 
-uniform mat4 modelMatrix;                   // Modellmatrix bringt Objekt in den Weltraum
-uniform mat4 viewMatrix;                    // Viewmatrix bringt Welt in den Kameraraum
-uniform mat4 projectMatrix;                 // Projektionsmatrix bringt Kamera in Clipraum
+layout(location = 0) in vec3 vVertex;
+layout(location = 1) in vec3 vNormal;
 
+uniform mat4 MV;        // ModelView
+uniform mat4 MVP;       // ModelViewProjection
+uniform mat3 NormalM;   // Normalenmatrix = inverse(transpose(upper-left 3x3 von MV))
 
-out vec3 FragPos;                           // An den Fragment Shader: Weltposition jedes Fragments
-out vec3 Normal;                            // An den Fragment Shader: Normale im Weltraum
+smooth out vec3 Position; // im Augenkoordinatensystem
+smooth out vec3 Normal;   // im Augenkoordinatensystem
 
-void main(void){
-    vec4 worldPos = modelMatrix * vec4(aPosition, 1.0); // Objektposition in Weltposition umrechnen
-    FragPos = worldPos.xyz;                              // Weltposition für spätere Lichtberechnung merken
+void main(void)
+{
+    vec4 V = vec4(vVertex, 1.0);  // w = 1 hinzufügen
 
-    // Normalen in den Weltraum transformieren
-    mat3 normalMatrix = transpose(inverse(mat3(modelMatrix))); // Inverse Transpose für korrekte Normale bei Skalierung
-    Normal = normalize(normalMatrix * aNormal);                 // transformierte Normale normalisieren
-    
-    gl_Position = projectMatrix * viewMatrix * worldPos; // Endposition des Vertex im Clipraum
-}   
+    gl_Position = MVP * V;        // Clip-Koordinaten
+    vec4 Pos = MV * V;            // Augenkoordinaten
+    Position = Pos.xyz / Pos.w;
+    Normal   = normalize(NormalM * vNormal);
+}

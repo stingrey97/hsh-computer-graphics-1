@@ -74,6 +74,21 @@ extern void printVec4(const GLfloat *vec);
 extern void printMat4(const GLfloat *mat);
 
 /**
+ * Erstellt eine 3x3 Matrix aus einer 4x4 Matrix (oberer linker Block)
+ */
+extern void mat3_from_mat4(GLfloat out[9], const GLfloat M[16]);
+
+/**
+ * Berechnet die Inverse Transponierte einer 3x3 Matrix
+ */
+extern void mat3_inverse_transpose(GLfloat out[9], const GLfloat m[9]);
+
+/**
+ * Transformiert einen Punkt pW (World Space) in den View Space
+ */
+extern void transform_point_view(GLfloat out3[3], const GLfloat V[16], const GLfloat pW[3]);
+
+/**
  * 4x4 Einheitsmatrix
  */
 extern void identity(GLfloat *out);
