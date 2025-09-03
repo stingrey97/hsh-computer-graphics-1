@@ -3,7 +3,8 @@
 #include <GLFW/glfw3.h>
 #include "../functions/matrixUtils.h"
 #include "../functions/loadShader.h"
-#include "../functions/loadObj.h"
+#include "../functions/mesh.h"
+#include "../functions/drawUtils.h"
 #include <math.h>
 
 // windows
@@ -57,7 +58,10 @@ GLfloat eye[3] = {0.0f, 0.0f, 100.0f};  // Kamera 3 Einheiten vor dem Ursprung
 GLfloat center[3] = {0.0f, 0.0f, 0.0f}; // Blick auf den Ursprung
 GLfloat up[3] = {0.0f, 1.0f, 0.0f};     // „Oben“ ist +Y
 
-int werte[4];
+// Mesh
+Mesh cube;
+Mesh teapot;
+Mesh column;
 
 // Kamera werte
 GLfloat spinValue = 0;
@@ -65,6 +69,34 @@ GLfloat spinDirection;
 GLfloat angle = 0.0f;
 
 GLfloat orbitRadius = 30.0f;
+
+// Materialien setzen
+void setMaterialPolishedGold()
+{
+    glUniform4f(uMat_emission, 0, 0, 0, 1);
+    glUniform4f(uMat_ambient, 0.25f, 0.22f, 0.06f, 1);
+    glUniform4f(uMat_diffuse, 0.35f, 0.31f, 0.09f, 1); // alpha=1 (opak)
+    glUniform4f(uMat_specular, 0.80f, 0.72f, 0.21f, 1);
+    glUniform1f(uMat_shininess, 83.2f);
+}
+
+void setMaterialGrayPillar()
+{
+    glUniform4f(uMat_emission, 0, 0, 0, 1);
+    glUniform4f(uMat_ambient, 0.20f, 0.20f, 0.20f, 1);
+    glUniform4f(uMat_diffuse, 0.50f, 0.50f, 0.50f, 1); // neutral grau, opak
+    glUniform4f(uMat_specular, 0.10f, 0.10f, 0.10f, 1);
+    glUniform1f(uMat_shininess, 16.0f);
+}
+
+void setMaterialGlass(float alpha)
+{
+    glUniform4f(uMat_emission, 0, 0, 0, 1);
+    glUniform4f(uMat_ambient, 0.02f, 0.02f, 0.03f, 1);
+    glUniform4f(uMat_diffuse, 0.22f, 0.30f, 0.34f, alpha); // Tönung + Alpha
+    glUniform4f(uMat_specular, 1, 1, 1, 1);
+    glUniform1f(uMat_shininess, 256.0f);
+}
 
 void init()
 {
@@ -168,8 +200,8 @@ void init()
     uSpot_specular = glGetUniformLocation(program, "spotlicht.specular");
 
     // Lichter: Directional aus, Punktlicht AN
-    glUniform1i(uSun_enabled, 0);
-    glUniform1i(uLamp_enabled, 0);
+    glUniform1i(uSun_enabled, 1);
+    glUniform1i(uLamp_enabled, 1);
     glUniform1i(uSpot_enabled, 1);
 
     // Richtungslicht
@@ -204,37 +236,9 @@ void init()
     glUniform1f(uSpot_innerCone, innerRad);
     glUniform1f(uSpot_outerCone, outerRad);
 
-    // Material: GLAS
-    glUniform4f(uMat_emission, 0.0f, 0.0f, 0.0f, 1.0f);
-    glUniform4f(uMat_ambient, 0.02f, 0.02f, 0.03f, 1.0f);
-    float alphaGlass = 0.14f;
-    glUniform4f(uMat_diffuse, 0.22f, 0.30f, 0.34f, alphaGlass);
-    glUniform4f(uMat_specular, 1.0f, 1.0f, 1.0f, 1.0f);
-    glUniform1f(uMat_shininess, 256.0f);
-
-    // read lines of OBJ4
-    countLinesF("objects/cube.obj", werte);
-    GLfloat triangleEcken[werte[3] * 8];
-    // lese das OBJ aus und fülle die Vertices
-    // 7 Werte pro Vertex: x, y, z, u, v, nx, ny, nz
-    loadOBJ("objects/cube.obj", triangleEcken, werte);
-
-    GLuint triangleVertexBufferObject; // VBO
-    glGenBuffers(1, &triangleVertexBufferObject);
-    glBindBuffer(GL_ARRAY_BUFFER, triangleVertexBufferObject);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(triangleEcken), triangleEcken, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    // create vertex array object
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, triangleVertexBufferObject);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), 0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void *)(5 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    loadMesh("objects/teapot.obj", &teapot);
+    loadMesh("objects/column.obj", &column);
+    loadMesh("objects/cube.obj", &cube);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -248,13 +252,13 @@ void init()
 
 void draw()
 {
+    glUseProgram(program);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     // Kamera kreisen lassen
     eye[0] = 3 * cosf(angle);
     eye[2] = 3 * sinf(angle);
     angle += 0.01f;
-
-    glUseProgram(program);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // 1) View/Proj
     lookAt(viewMatrix, eye, center, up);
@@ -287,44 +291,33 @@ void draw()
     glUniform3f(uSpot_position, posV[0], posV[1], posV[2]);
     glUniform3f(uSpot_direction, dirV[0], dirV[1], dirV[2]);
 
-    // 2) Model
-    identity(modelMatrix);
-    translate(modelMatrix, modelMatrix, (GLfloat[]){0.0f, -0.01f, 0.0f});
-    scale(modelMatrix, modelMatrix, (GLfloat[]){0.005f, 0.005f, 0.005f});
-
-    // 3) MV, MVP, NormalM
-    GLfloat MV[16], MVP[16];
-    mat4f_mul_mat4f(MV, viewMatrix, modelMatrix);
-    mat4f_mul_mat4f(MVP, projMatrix, MV);
-
-    GLfloat NormalM[9];
-    mat3_from_mat4(NormalM, MV);
-    mat3_inverse_transpose(NormalM, NormalM);
-
     // 4) Punktlicht-Position JEDES Frame in View-Space updaten
-    {
-        GLfloat lightW[3] = {2.0f, 2.0f, 5.0f}; // deine Welt-Pos
-        GLfloat lightV[3];
-        transform_point_view(lightV, viewMatrix, lightW);
-        glUniform4f(uLamp_position, lightV[0], lightV[1], lightV[2], 1.0f);
-    }
+    GLfloat lightW[3] = {2.0f, 2.0f, 5.0f}; // deine Welt-Pos
+    GLfloat lightV[3];
+    transform_point_view(lightV, viewMatrix, lightW);
+    glUniform4f(uLamp_position, lightV[0], lightV[1], lightV[2], 1.0f);
 
-    // 5) Matrizen hochladen
-    glUniformMatrix4fv(MVLoc, 1, GL_FALSE, MV);
-    glUniformMatrix4fv(MVPLoc, 1, GL_FALSE, MVP);
-    glUniformMatrix3fv(NormalMLoc, 1, GL_FALSE, NormalM);
+    // 1) Graue Säule (gestreckter Cube)
+    GLfloat M[16];
+    identity(M);
+    translate(M, M, (GLfloat[]){0.0f, -0.01f, 0.0f});
+    scale(M, M, (GLfloat[]){0.0042f, 0.0045f, 0.0042f});
+    setMaterialGrayPillar();
+    drawMeshWithModel(&column, viewMatrix, projMatrix, M, MVLoc, MVPLoc, NormalMLoc);
 
-    glBindVertexArray(vao);
-    glDepthMask(GL_FALSE); // Z-Buffer nicht beschreiben (wichtig für Blending)
+    // 2) Golderner Teapot
+    identity(M);
+    translate(M, M, (GLfloat[]){0.0f, 0.0060f, 0.0f});
+    scale(M, M, (GLfloat[]){0.0014f, 0.0014f, 0.0014f});
+    setMaterialPolishedGold();
+    drawMeshWithModel(&teapot, viewMatrix, projMatrix, M, MVLoc, MVPLoc, NormalMLoc);
 
-    // Pass 1: Rückseiten
-    glCullFace(GL_FRONT);
-    glDrawArrays(GL_TRIANGLES, 0, werte[3]);
-
-    // Pass 2: Vorderseiten
-    glCullFace(GL_BACK);
-    glDrawArrays(GL_TRIANGLES, 0, werte[3]);
-    glDepthMask(GL_TRUE); // Zustand zurücksetzen
+    // Glaswürfel
+    identity(M);
+    translate(M, M, (GLfloat[]){0.0f, 0.0035f, 0.0f});
+    scale(M, M, (GLfloat[]){0.0024f, 0.0024f, 0.0024f});
+    setMaterialGlass(0.18f);
+    drawtransparentMeshWithModel(&cube, viewMatrix, projMatrix, M, MVLoc, MVPLoc, NormalMLoc);
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
