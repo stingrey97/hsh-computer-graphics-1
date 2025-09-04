@@ -7,7 +7,7 @@
 
 #include <GL/glew.h>
 
-static inline float deg2radf(float deg) { return (float)M_PI * deg / 180.0f; }
+float deg2radf(float deg) { return (float)PI * deg / 180.0f; }
 
 void mat4f_mul_mat4f(float *restrict out, const float *a, const float *b)
 {

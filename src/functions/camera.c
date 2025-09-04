@@ -15,7 +15,7 @@
 #define MOUSE_SPEED 0.05f
 #define START_HORIZONTAL_ANGLE 4.72f
 #define START_VERTICAL_ANGLE 0.0f
-#define DEBUG_MODE
+#define NO_DEBUG_MODE
 
 static double lastTime;
 
@@ -94,28 +94,28 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
         cos(horizontalAngle - 3.14f / 2.0f)};
 
     // Move forward
-    if (glfwGetKey(context->window, GLFW_KEY_UP) == GLFW_PRESS)
+    if (glfwGetKey(context->window, GLFW_KEY_UP) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_W) == GLFW_PRESS)
     {
         GLfloat dir[3];
         multiply3f(dir, context->look, deltaTime * KEY_SPEED);
         plus3f(context->eye, context->eye, dir);
     }
     // Move backward
-    if (glfwGetKey(context->window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    if (glfwGetKey(context->window, GLFW_KEY_DOWN) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_S) == GLFW_PRESS)
     {
         GLfloat dir[3];
         multiply3f(dir, context->look, deltaTime * KEY_SPEED);
         minus3f(context->eye, context->eye, dir);
     }
     // Strafe right
-    if (glfwGetKey(context->window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+    if (glfwGetKey(context->window, GLFW_KEY_RIGHT) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_D) == GLFW_PRESS)
     {
         GLfloat ri[3];
         multiply3f(ri, right, deltaTime * KEY_SPEED);
         plus3f(context->eye, context->eye, ri);
     }
     // Strafe left
-    if (glfwGetKey(context->window, GLFW_KEY_LEFT) == GLFW_PRESS)
+    if (glfwGetKey(context->window, GLFW_KEY_LEFT) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_A) == GLFW_PRESS)
     {
         GLfloat ri[3];
         multiply3f(ri, right, deltaTime * KEY_SPEED);

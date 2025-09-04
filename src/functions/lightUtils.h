@@ -9,7 +9,7 @@ extern void initializeDirectionalLight(GLint uSun_ambient, GLint uSun_diffuse, G
 extern void initializePointLight(GLint uLamp_ambient, GLint uLamp_diffuse, GLint uLamp_specular, GLint uLamp_linear, GLint uLamp_quadratic);
 extern void initializeSpotLight(GLint uSpot_ambient, GLint uSpot_diffuse, GLint uSpot_specular, GLint uSpot_innerCone, GLint uSpot_outerCone);
 
-extern void setPointLight();
-extern void setDirectionalLight();
-extern void setSpotLight();
+extern void setPointLight(GLint uLamp_position, const float viewMatrix[16], float x, float y, float z);
+extern void setDirectionalLight(GLint uSun_direction, const float viewMatrix[16], float x, float y, float z);
+extern void setSpotLight(GLint uSpot_position, GLint uSpot_direction, const float viewMatrix[16], const float eye[3], const float center[3]);
 #endif

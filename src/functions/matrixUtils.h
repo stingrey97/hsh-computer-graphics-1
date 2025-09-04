@@ -9,9 +9,9 @@
 #define EPS 1e-6f
 
 /**
- * Math PI, wenn kein M_PI definiert ist
+ * PI, wenn kein M_PI definiert ist
  */
-#define M_PI 3.14159265358979323846
+#define PI 3.14159265358979323846
 
 /**
  * Multipliziert zwei 4x4 Matrizen
