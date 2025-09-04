@@ -11,13 +11,13 @@
 // windows
 GLFWwindow *window;
 
-//Material (struct Material material)
+// Material (struct Material material)
 GLint uMat_emission, uMat_ambient, uMat_diffuse, uMat_specular, uMat_shininess;
 
-//Richtungslicht (struct lightSourceR richtungslicht)
+// Richtungslicht (struct lightSourceR richtungslicht)
 GLint uSun_enabled, uSun_direction, uSun_ambient, uSun_diffuse, uSun_specular;
 
-//Punktlicht (struct lightSourceP punktlicht)
+// Punktlicht (struct lightSourceP punktlicht)
 GLint uLamp_enabled, uLamp_position, uLamp_ambient, uLamp_diffuse, uLamp_specular, uLamp_linear, uLamp_quadratic;
 
 // Spotlicht (struct lightSourceS spotlicht)
@@ -179,14 +179,13 @@ void init()
     uSpot_diffuse = glGetUniformLocation(program, "spotlicht.diffuse");
     uSpot_specular = glGetUniformLocation(program, "spotlicht.specular");
 
-    // Lichter an aus 
+    // Lichter an aus
     glUniform1i(uSun_enabled, 1);
     glUniform1i(uLamp_enabled, 1);
     glUniform1i(uSpot_enabled, 1);
 
     // Richtungslicht
     initializeDirectionalLight(uSun_ambient, uSun_diffuse, uSun_specular);
-    glUniform3f(uSun_direction, 5.0f, 5.0f, 0.0f); // in draw call
 
     // Punktlicht
     initializePointLight(uLamp_ambient, uLamp_diffuse, uLamp_specular, uLamp_linear, uLamp_quadratic);
@@ -223,37 +222,14 @@ void draw()
     perspective(projMatrix, 45.0f * (3.14159265358979323846f / 180.0f),
                 1200.0f / 800.0f, 0.1f, 100.0f);
 
-    // Headlight (Spotlicht) immer auf die Kamera setzen
-    float posW[3] = {eye[0], eye[1], eye[2]};
-    float dirW[3] = {center[0] - eye[0], center[1] - eye[1], center[2] - eye[2]};
-    float d = sqrtf(dirW[0] * dirW[0] + dirW[1] * dirW[1] + dirW[2] * dirW[2]);
-    if (d > 1e-8f)
-    {
-        dirW[0] /= d;
-        dirW[1] /= d;
-        dirW[2] /= d;
-    }
-    float posV[3];
-    transform_point_view(posV, viewMatrix, posW);
-    float dirV[3] = {
-        viewMatrix[0] * dirW[0] + viewMatrix[4] * dirW[1] + viewMatrix[8] * dirW[2],
-        viewMatrix[1] * dirW[0] + viewMatrix[5] * dirW[1] + viewMatrix[9] * dirW[2],
-        viewMatrix[2] * dirW[0] + viewMatrix[6] * dirW[1] + viewMatrix[10] * dirW[2]};
-    float L = sqrtf(dirV[0] * dirV[0] + dirV[1] * dirV[1] + dirV[2] * dirV[2]);
-    if (L > 1e-8f)
-    {
-        dirV[0] /= L;
-        dirV[1] /= L;
-        dirV[2] /= L;
-    }
-    glUniform3f(uSpot_position, posV[0], posV[1], posV[2]);
-    glUniform3f(uSpot_direction, dirV[0], dirV[1], dirV[2]);
+    // Richtungslicht an die Kamera setzten
+    setDirectionalLight(uSun_direction, viewMatrix, 1.0f, 1.0f, 1.0f);
 
-    // 4) Punktlicht-Position JEDES Frame in View-Space updaten
-    GLfloat lightW[3] = {2.0f, 2.0f, 5.0f}; // deine Welt-Pos
-    GLfloat lightV[3];
-    transform_point_view(lightV, viewMatrix, lightW);
-    glUniform4f(uLamp_position, lightV[0], lightV[1], lightV[2], 1.0f);
+    // Headlight (Spotlicht) immer auf die Kamera setzen
+    setSpotLight(uSpot_position, uSpot_direction, viewMatrix, eye, center);
+
+    //Punktlicht-Position JEDES Frame in View-Space updaten
+    setPointLight(uLamp_position, viewMatrix, 2.0f, 2.0f, 5.0f);
 
     // 1) Graue Säule (gestreckter Cube)
     GLfloat M[16];
