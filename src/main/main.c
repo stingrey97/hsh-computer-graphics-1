@@ -14,25 +14,23 @@
 #include "../functions/drawUtils.h"
 #include "../functions/lightUtils.h"
 #include "../functions/camera.h"
+#include "../functions/expirmente.h"
 
 #define INIT_WINDOW_TITLE "OpenGL Program"
 #define INIT_WINDOW_WIDTH 1024
 #define INIT_WINDOW_HEIGHT 768
 
 // Material (struct Material material)
-// Material (struct Material material)
 GLint uMat_emission, uMat_ambient, uMat_diffuse, uMat_specular, uMat_shininess;
 
-// Richtungslicht (struct lightSourceR richtungslicht)
 // Richtungslicht (struct lightSourceR richtungslicht)
 GLint uSun_enabled, uSun_direction, uSun_ambient, uSun_diffuse, uSun_specular;
 
 // Punktlicht (struct lightSourceP punktlicht)
-// Punktlicht (struct lightSourceP punktlicht)
 GLint uLamp_enabled, uLamp_position, uLamp_ambient, uLamp_diffuse, uLamp_specular, uLamp_linear, uLamp_quadratic;
 
 // Spotlicht (struct lightSourceS spotlicht)
-GLint uSpot_enabled, uSpot_position, uSpot_direction, uSpot_innerCone, uSpot_outerCone, uSpot_ambient, uSpot_diffuse, uSpot_specular;
+GLint uSpot_enabled, uSpot_position, uSpot_direction, uSpot_innerCone, uSpot_outerCone, uSpot_ambient, uSpot_diffuse, uSpot_specular, uSpot_linear, uSpot_quadratic;
 
 // Uniform Standorte
 GLint MVLoc, MVPLoc, NormalMLoc;
@@ -41,6 +39,9 @@ GLint MVLoc, MVPLoc, NormalMLoc;
 Mesh cube;
 Mesh teapot;
 Mesh column;
+
+// Licht Status
+Status status = {1, 1, 1};
 
 void framebuffer_size_callback(GLFWwindow *window, int cb_width, int cb_height)
 {
@@ -78,9 +79,9 @@ void setMaterialGlass(float alpha)
 void init(AppContext *context)
 {
     // Initial camera
-    setVec3(context->eye, 5, 0, 0);
-    setVec3(context->look, 0, 0, 0);
-    setVec3(context->up, 0, 1, 0);
+    setVec3(context->eye, 0.0f, 1.6f, 4.5f);
+    setVec3(context->look, 0.0f, 0.7f, 0.0f); // leicht über Säulenmitte
+    setVec3(context->up, 0.0f, 1.0f, 0.0f);
 
     initCamera(context);
 
@@ -128,6 +129,8 @@ void init(AppContext *context)
     uSpot_ambient = glGetUniformLocation(context->programID, "spotlicht.ambient");
     uSpot_diffuse = glGetUniformLocation(context->programID, "spotlicht.diffuse");
     uSpot_specular = glGetUniformLocation(context->programID, "spotlicht.specular");
+    uSpot_linear = glGetUniformLocation(context->programID, "spotlicht.linear");
+    uSpot_quadratic = glGetUniformLocation(context->programID, "spotlicht.quadratic");
 
     // Lichter an aus
     glUniform1i(uSun_enabled, 1);
@@ -141,7 +144,7 @@ void init(AppContext *context)
     initializePointLight(uLamp_ambient, uLamp_diffuse, uLamp_specular, uLamp_linear, uLamp_quadratic);
 
     // Spotlicht
-    initializeSpotLight(uSpot_ambient, uSpot_diffuse, uSpot_specular, uSpot_innerCone, uSpot_outerCone);
+    initializeSpotLight(uSpot_ambient, uSpot_diffuse, uSpot_specular, uSpot_innerCone, uSpot_outerCone, uSpot_linear, uSpot_quadratic);
 
     loadMesh("objects/teapot.obj", &teapot);
     loadMesh("objects/column.obj", &column);
@@ -165,6 +168,8 @@ void draw(AppContext *context)
     GLfloat V[16];
     GLfloat P[16];
     camera(V, P, context);
+
+    lichtSchalter(uSun_enabled, uLamp_enabled, uSpot_enabled, context->window, &status);
 
     // Richtungslicht an die Kamera setzten
     setDirectionalLight(uSun_direction, V, 1.0f, 1.0f, 1.0f);

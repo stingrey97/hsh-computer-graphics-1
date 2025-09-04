@@ -46,6 +46,9 @@ uniform struct lightSourceS{
     vec4 ambient;
     vec4 diffuse;
     vec4 specular;
+
+    float linear; 
+    float quadratic;  
 }spotlicht;
 
 void main(void)
@@ -105,24 +108,35 @@ void main(void)
     }
     // Spotlicht
     if(spotlicht.enabled==1){
-        light = normalize(spotlicht.position - Position);
+        light       = normalize(spotlicht.position - Position);
+        reflection  = reflect(-light, normal);
 
-        float theta = dot(-light, normalize(spotlicht.direction));
-        float epsilon = max((spotlicht.innerCone - spotlicht.outerCone), 1e-6);
-        float intensity = clamp((theta - spotlicht.outerCone)/ epsilon, 0.0f , 1.0f);
+        float theta    = dot(-light, normalize(spotlicht.direction));
+        float epsilon  = max(spotlicht.innerCone - spotlicht.outerCone, 1e-6);
+        float intensity = clamp((theta - spotlicht.outerCone) / epsilon, 0.0, 1.0);
 
-        float NdotL = max(dot(normal, light), 0.0);
-        float specAmt = 0.0;
-        if (NdotL > 0.0) {
-            vec3 reflection = reflect(-light, normal);
-            float RV = max(dot(reflection, view), 1e-6);
-            specAmt = pow(RV, material.shininess);
+        // Attenuation (NEU)
+        float dist        = length(spotlicht.position - Position);
+        float attenuation = 1.0 / (1.0 + spotlicht.linear * dist + spotlicht.quadratic * dist * dist);
+        intensity *= attenuation;
+
+        ambient  = vec3(0.0);
+        diffuse  = vec3(0.0);
+        specular = vec3(0.0);
+        if (theta > spotlicht.outerCone) {
+            ambient  = spotlicht.ambient.rgb * material.ambient.rgb;
+
+            diffuse  = intensity * spotlicht.diffuse.rgb
+                                * max(dot(normal, light), 0.0)
+                                * material.diffuse.rgb;
+
+            specular = intensity * spotlicht.specular.rgb
+                                * pow(max(dot(reflection, view), 0.0), material.shininess)
+                                * material.specular.rgb;
+        } else {
+            ambient = spotlicht.ambient.rgb * material.ambient.rgb;
         }
-        ambient = (spotlicht.ambient.rgb) * (material.ambient.rgb);
-        diffuse = intensity * (spotlicht.diffuse.rgb) * NdotL * (material.diffuse.rgb);
-        specular = intensity * (material.specular.rgb) * specAmt * (spotlicht.specular.rgb);
-
-        col += (ambient + diffuse + specular);
+        col += ambient + diffuse + specular;
     }
 
     FragColor = vec4(col,alpha);
