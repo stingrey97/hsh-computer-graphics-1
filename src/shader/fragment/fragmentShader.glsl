@@ -1,36 +1,129 @@
 #version 330 core
-in vec3 FragPos;                      // Interpolierte Weltposition vom Vertex Shader
-in vec3 Normal;                       // Interpolierte Normale im Weltraum
 
-out vec4 FragColor;                   // Finale Farbe des Pixels
+smooth in vec3 Position;   // View-Space: aus dem VS
+smooth in vec3 Normal;     // View-Space: aus dem VS
+out vec4 FragColor;
 
-uniform vec3 lightPos;                // Position des Punktlichts im Weltraum
-uniform vec3 viewPos;                 // Kameraposition im Weltraum
-uniform vec3 lightColor;              // Lichtfarbe und Grundintensität
-uniform vec3 objectColor;             // Grundfarbe des Materials
+// Matreial uniform Struct 
+uniform struct Material {
+    vec4 emission; 
+    vec4 ambient;
+    vec4 diffuse;
+    vec4 specular;
+    float shininess;
+} material;
 
-uniform float ambientStrength;        // Anteil des Umgebungslichts
-uniform float specularStrength;       // Stärke der Glanzlichter
-uniform float shininess;              // Glanz Exponent für die Größe des Highlightsr;
+//Richtungslicht Struct
+uniform struct lightSourceR{
+    int enabled; // 0 = aus, 1 = an
+    vec3 direction;
+    vec4 ambient;
+    vec4 diffuse;
+    vec4 specular;
+} richtungslicht;
+
+// Punktlicht Struct
+uniform struct lightSourceP{
+    int enabled; // 0 = aus, 1 = an
+    vec4 position;
+    vec4 ambient;
+    vec4 diffuse;
+    vec4 specular;
+
+    float linear;
+    float quadratic;
+} punktlicht;
+
+// Spotlicht Struct
+uniform struct lightSourceS{
+    int enabled; // 0 = aus, 1 = an
+    vec3 position;
+    vec3 direction;
+
+    float innerCone; // als Radians
+    float outerCone;
+
+    vec4 ambient;
+    vec4 diffuse;
+    vec4 specular;
+}spotlicht;
+
+void main(void)
+{
+    vec3 light;
+    vec3 reflection;
+    float NdotL;
+    float specAmt;
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
 
 
-void main(void){
-    // Ambient Anteil unabhängig von Richtung
-    vec3 ambient = ambientStrength * lightColor;
+    vec3 normal = normalize(Normal);
+    vec3 view = normalize(-Position);
+    vec3 col   = material.emission.rgb;
+    float alpha = material.diffuse.a;
 
-    // Diffuse Anteil abhängig vom Winkel zwischen Licht und Normale
-    vec3 N = normalize(Normal);                   // Sicherstellen, dass die Normale Länge 1 hat
-    vec3 L = normalize(lightPos - FragPos);      // Richtung vom Fragment zum Licht
-    float diff = max(dot(N, L), 0.0);            // Cosinus des Winkels, nicht negativ werden lassen
-    vec3 diffuse = diff * lightColor;            // Diffuse Lichtfarbe skalieren
+    // Richtungslicht
+    if(richtungslicht.enabled==1){
+        light = normalize(-richtungslicht.direction);
+        ambient = (richtungslicht.ambient.rgb) * (material.ambient.rgb);
 
-    // Specular Anteil abhängig von Blickrichtung und Spiegelrichtung
-    vec3 V = normalize(viewPos - FragPos);       // Richtung vom Fragment zum Auge
-    vec3 R = reflect(-L, N);                     // Spiegelrichtung des Lichts an der Normalen
-    float spec = pow(max(dot(V, R), 0.0), shininess); // Glanz berechnen mit Exponent
-    vec3 specular = specularStrength * spec * lightColor; // Glanzfarbe skalieren
+        NdotL = max(dot(normal, light), 0.0);
+        float specAmt = 0.0;
+        if (NdotL > 0.0) {
+          reflection = reflect(-light, normal);
+          float RV = max(dot(reflection, view), 1e-6);
+          specAmt = pow(RV, material.shininess);
+        }
 
-    // Zusammenführen und mit Objektfarbe multiplizieren
-    vec3 color = (ambient + diffuse + specular) * objectColor;
-    FragColor = vec4(color, 1.0);                // Ausgeben mit voller Deckkraft
+        diffuse  = (richtungslicht.diffuse.rgb) * NdotL * (material.diffuse.rgb);
+        specular = (material.specular.rgb * specAmt * richtungslicht.specular.rgb);
+
+        col += ambient + diffuse + specular;
+    }
+    // Punktlicht
+    if(punktlicht.enabled==1){
+        vec3 Lvec = punktlicht.position.xyz - Position;
+        float dist = length(Lvec);
+        light = (Lvec / max(dist, 1e-6));
+        float attenuation = 1.0 / ((1.0)+ punktlicht.linear * dist + punktlicht.quadratic * (dist * dist));
+
+        NdotL = max(dot(normal, light), 0.0);
+        specAmt = 0.0;
+        if (NdotL > 0.0) {
+          reflection = reflect(-light, normal);
+          float RV = max(dot(reflection, view), 1e-6);
+          specAmt = pow(RV, material.shininess);
+        }
+
+        ambient = attenuation * (punktlicht.ambient.rgb) * (material.ambient.rgb);        
+        diffuse = attenuation * (punktlicht.diffuse.rgb) * NdotL * (material.diffuse.rgb);
+        specular = attenuation * (material.specular.rgb * specAmt * punktlicht.specular.rgb);
+
+        col += ambient + diffuse + specular;
+    }
+    // Spotlicht
+    if(spotlicht.enabled==1){
+        light = normalize(spotlicht.position - Position);
+
+        float theta = dot(-light, normalize(spotlicht.direction));
+        float epsilon = max((spotlicht.innerCone - spotlicht.outerCone), 1e-6);
+        float intensity = clamp((theta - spotlicht.outerCone)/ epsilon, 0.0f , 1.0f);
+
+        float NdotL = max(dot(normal, light), 0.0);
+        float specAmt = 0.0;
+        if (NdotL > 0.0) {
+            vec3 reflection = reflect(-light, normal);
+            float RV = max(dot(reflection, view), 1e-6);
+            specAmt = pow(RV, material.shininess);
+        }
+        ambient = (spotlicht.ambient.rgb) * (material.ambient.rgb);
+        diffuse = intensity * (spotlicht.diffuse.rgb) * NdotL * (material.diffuse.rgb);
+        specular = intensity * (material.specular.rgb) * specAmt * (spotlicht.specular.rgb);
+
+        col += (ambient + diffuse + specular);
+    }
+
+    FragColor = vec4(col,alpha);
 }

@@ -3,7 +3,9 @@
 #include <GLFW/glfw3.h>
 #include "../functions/matrixUtils.h"
 #include "../functions/loadShader.h"
-#include "../functions/loadObj.h"
+#include "../functions/mesh.h"
+#include "../functions/drawUtils.h"
+#include "../functions/lightUtils.h"
 #include "../functions/camera.h"
 #include <math.h>
 #define STB_IMAGE_IMPLEMENTATION
@@ -14,14 +16,23 @@ WindowData windowData;
 // windows
 GLFWwindow *window;
 
-// Licht Variablen
-GLint lightPosLoc, viewPosLoc, lightColorLoc, objectColorLoc, ambientLoc, specularLoc, shininessLoc;
+//Material (struct Material material)
+GLint uMat_emission, uMat_ambient, uMat_diffuse, uMat_specular, uMat_shininess;
+
+//Richtungslicht (struct lightSourceR richtungslicht)
+GLint uSun_enabled, uSun_direction, uSun_ambient, uSun_diffuse, uSun_specular;
+
+//Punktlicht (struct lightSourceP punktlicht)
+GLint uLamp_enabled, uLamp_position, uLamp_ambient, uLamp_diffuse, uLamp_specular, uLamp_linear, uLamp_quadratic;
+
+// Spotlicht (struct lightSourceS spotlicht)
+GLint uSpot_enabled, uSpot_position, uSpot_direction, uSpot_innerCone, uSpot_outerCone, uSpot_ambient, uSpot_diffuse, uSpot_specular;
 
 // Shader Variablen
 GLuint program, vao;
 
 // Uniform Standorte
-GLint modelMatrixLoc, viewMatrixLoc, PVLoc;
+GLint MVLoc, MVPLoc, NormalMLoc;
 
 // Matrizen
 GLfloat modelMatrix[16];
@@ -33,7 +44,17 @@ GLfloat up[3] = {0.0f, 1.0f, 0.0f};     // „Oben“ ist +Y
 
 int width = 1280, height = 720;
 
-int werte[4];
+// Mesh
+Mesh cube;
+Mesh teapot;
+Mesh column;
+
+// Kamera werte
+GLfloat spinValue = 0;
+GLfloat spinDirection;
+GLfloat angle = 0.0f;
+
+GLfloat orbitRadius = 30.0f;
 
 void framebuffer_size_callback(GLFWwindow *window, int cb_width, int cb_height)
 {
@@ -49,58 +70,32 @@ void framebuffer_size_callback(GLFWwindow *window, int cb_width, int cb_height)
     glUseProgram(0);
 }
 
-// Skybox
-GLuint skyboxProgram, skyboxVAO, skyboxVBO, cubemapTex;
-GLint sbViewLoc, sbProjLoc;
-
-GLuint loadCubemap(const char *faces[6])
+// Materialien setzen
+void setMaterialPolishedGold()
 {
-    GLuint tex;
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, tex);
+    glUniform4f(uMat_emission, 0, 0, 0, 1);
+    glUniform4f(uMat_ambient, 0.25f, 0.22f, 0.06f, 1);
+    glUniform4f(uMat_diffuse, 0.35f, 0.31f, 0.09f, 1); // alpha=1 (opak)
+    glUniform4f(uMat_specular, 0.80f, 0.72f, 0.21f, 1);
+    glUniform1f(uMat_shininess, 83.2f);
+}
 
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // <— hinzufügen
+void setMaterialGrayPillar()
+{
+    glUniform4f(uMat_emission, 0, 0, 0, 1);
+    glUniform4f(uMat_ambient, 0.20f, 0.20f, 0.20f, 1);
+    glUniform4f(uMat_diffuse, 0.50f, 0.50f, 0.50f, 1); // neutral grau, opak
+    glUniform4f(uMat_specular, 0.10f, 0.10f, 0.10f, 1);
+    glUniform1f(uMat_shininess, 16.0f);
+}
 
-    // Für Cubemaps: kein Flip
-    stbi_set_flip_vertically_on_load(0);
-
-    int w, h, n;
-    for (int i = 0; i < 6; ++i)
-    {
-        unsigned char *data = stbi_load(faces[i], &w, &h, &n, 0);
-        if (!data)
-        {
-            char absPath[PATH_MAX];
-            if (realpath(faces[i], absPath))
-            {
-                printf("Cubemap: konnte %s nicht laden\n", absPath);
-            }
-            else
-            {
-                printf("Cubemap: konnte %s nicht laden (realpath fehlgeschlagen)\n", faces[i]);
-            }
-            continue;
-        }
-
-        GLenum srcFmt = (n == 1) ? GL_RED : (n == 3) ? GL_RGB
-                                                     : GL_RGBA;
-        GLint intFmt = (n == 1) ? GL_R8 : (n == 3) ? GL_RGB8
-                                                   : GL_RGBA8;
-
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0,
-                     intFmt, w, h, 0, srcFmt, GL_UNSIGNED_BYTE, data);
-        stbi_image_free(data);
-    }
-
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-
-    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-    return tex;
+void setMaterialGlass(float alpha)
+{
+    glUniform4f(uMat_emission, 0, 0, 0, 1);
+    glUniform4f(uMat_ambient, 0.02f, 0.02f, 0.03f, 1);
+    glUniform4f(uMat_diffuse, 1.0, 0.00f, 1.0f, alpha); // Tönung + Alpha
+    glUniform4f(uMat_specular, 1, 1, 1, 1);
+    glUniform1f(uMat_shininess, 256.0f);
 }
 
 void init()
@@ -179,52 +174,67 @@ void init()
     glUseProgram(program);
 
     // einmal die Location holen Matrizen
-    modelMatrixLoc = glGetUniformLocation(program, "modelMatrix");
-    PVLoc = glGetUniformLocation(program, "PV");
+    MVLoc = glGetUniformLocation(program, "MV");
+    MVPLoc = glGetUniformLocation(program, "MVP");
+    NormalMLoc = glGetUniformLocation(program, "NormalM");
 
     identity(modelMatrix);
 
     // neue Uniforms für Licht/Material
-    lightPosLoc = glGetUniformLocation(program, "lightPos");
-    viewPosLoc = glGetUniformLocation(program, "viewPos");
-    lightColorLoc = glGetUniformLocation(program, "lightColor");
-    objectColorLoc = glGetUniformLocation(program, "objectColor");
-    ambientLoc = glGetUniformLocation(program, "ambientStrength");
-    specularLoc = glGetUniformLocation(program, "specularStrength");
-    shininessLoc = glGetUniformLocation(program, "shininess");
+    // Material
+    uMat_emission = glGetUniformLocation(program, "material.emission");
+    uMat_ambient = glGetUniformLocation(program, "material.ambient");
+    uMat_diffuse = glGetUniformLocation(program, "material.diffuse");
+    uMat_specular = glGetUniformLocation(program, "material.specular");
+    uMat_shininess = glGetUniformLocation(program, "material.shininess");
 
-    // sinnvolle Startwerte
-    glUniform3f(lightPosLoc, 2.0f, 3.0f, 2.0f);      // Position des Lichts
-    glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f);    // weißes Licht
-    glUniform3f(objectColorLoc, 1.0f, 0.85f, 0.75f); // Materialfarbe (Beispiel)
-    glUniform1f(ambientLoc, 0.20f);                  // Grundhelligkeit
-    glUniform1f(specularLoc, 0.50f);                 // Glanzstärke
-    glUniform1f(shininessLoc, 32.0f);                // Glanzgröße
+    // Richtungslicht
+    uSun_enabled = glGetUniformLocation(program, "richtungslicht.enabled");
+    uSun_direction = glGetUniformLocation(program, "richtungslicht.direction");
+    uSun_ambient = glGetUniformLocation(program, "richtungslicht.ambient");
+    uSun_diffuse = glGetUniformLocation(program, "richtungslicht.diffuse");
+    uSun_specular = glGetUniformLocation(program, "richtungslicht.specular");
 
-    // read lines of OBJ4
-    countLinesF("objects/teapot.obj", werte);
-    GLfloat triangleEcken[werte[3] * 8];
-    // lese das OBJ aus und fülle die Vertices
-    // 7 Werte pro Vertex: x, y, z, u, v, nx, ny, nz
-    loadOBJ("objects/teapot.obj", triangleEcken, werte);
+    // Punktlicht
+    uLamp_enabled = glGetUniformLocation(program, "punktlicht.enabled");
+    uLamp_position = glGetUniformLocation(program, "punktlicht.position");
+    uLamp_ambient = glGetUniformLocation(program, "punktlicht.ambient");
+    uLamp_diffuse = glGetUniformLocation(program, "punktlicht.diffuse");
+    uLamp_specular = glGetUniformLocation(program, "punktlicht.specular");
+    uLamp_linear = glGetUniformLocation(program, "punktlicht.linear");
+    uLamp_quadratic = glGetUniformLocation(program, "punktlicht.quadratic");
 
-    GLuint triangleVertexBufferObject; // VBO
-    glGenBuffers(1, &triangleVertexBufferObject);
-    glBindBuffer(GL_ARRAY_BUFFER, triangleVertexBufferObject);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(triangleEcken), triangleEcken, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    // Spotlicht
+    uSpot_enabled = glGetUniformLocation(program, "spotlicht.enabled");
+    uSpot_position = glGetUniformLocation(program, "spotlicht.position");
+    uSpot_direction = glGetUniformLocation(program, "spotlicht.direction");
+    uSpot_innerCone = glGetUniformLocation(program, "spotlicht.innerCone");
+    uSpot_outerCone = glGetUniformLocation(program, "spotlicht.outerCone");
+    uSpot_ambient = glGetUniformLocation(program, "spotlicht.ambient");
+    uSpot_diffuse = glGetUniformLocation(program, "spotlicht.diffuse");
+    uSpot_specular = glGetUniformLocation(program, "spotlicht.specular");
 
-    // create vertex array object
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, triangleVertexBufferObject);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), 0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void *)(5 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    // Lichter an aus 
+    glUniform1i(uSun_enabled, 1);
+    glUniform1i(uLamp_enabled, 1);
+    glUniform1i(uSpot_enabled, 1);
 
+    // Richtungslicht
+    initializeDirectionalLight(uSun_ambient, uSun_diffuse, uSun_specular);
+    glUniform3f(uSun_direction, 5.0f, 5.0f, 0.0f); // in draw call
+
+    // Punktlicht
+    initializePointLight(uLamp_ambient, uLamp_diffuse, uLamp_specular, uLamp_linear, uLamp_quadratic);
+
+    // Spotlicht
+    initializeSpotLight(uSpot_ambient, uSpot_diffuse, uSpot_specular, uSpot_innerCone, uSpot_outerCone);
+
+    loadMesh("objects/teapot.obj", &teapot);
+    loadMesh("objects/column.obj", &column);
+    loadMesh("objects/cube.obj", &cube);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -320,7 +330,7 @@ void init()
 
 void draw()
 {
-    // Eventuell auch useProgramm machen bei mehreren Shadern
+    glUseProgram(program);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     // Perspective- and ViewMatrix
@@ -330,59 +340,51 @@ void draw()
     glUseProgram(program);
     glUniform3f(viewPosLoc, eye[0], eye[1], eye[2]);
 
-    // TRANSFORMATIONEN Generell
-    // 1) Kamera
+    // Kamera kreisen lassen
+    eye[0] = 3 * cosf(angle);
+    eye[2] = 3 * sinf(angle);
+    angle += 0.01f;
+
+    // 1) View/Proj
     lookAt(viewMatrix, eye, center, up);
-    glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, viewMatrix);
+    perspective(projMatrix, 45.0f * (3.14159265358979323846f / 180.0f),
+                1200.0f / 800.0f, 0.1f, 100.0f);
 
-    // 2) Perspektive
-    perspective(projMatrix, 45.0f, (float)width / height, 0.1f, 100.0f);
-    glUniformMatrix4fv(projMatrix, 1, GL_FALSE, projMatrix);
+    // Headlight (Spotlicht) immer auf die Kamera setzen
+    float posW[3] = {eye[0], eye[1], eye[2]};
+    float dirW[3] = {center[0] - eye[0], center[1] - eye[1], center[2] - eye[2]};
+    float d = sqrtf(dirW[0] * dirW[0] + dirW[1] * dirW[1] + dirW[2] * dirW[2]);
+    if (d > 1e-8f)
+    {
+        dirW[0] /= d;
+        dirW[1] /= d;
+        dirW[2] /= d;
+    }
+    float posV[3];
+    transform_point_view(posV, viewMatrix, posW);
+    float dirV[3] = {
+        viewMatrix[0] * dirW[0] + viewMatrix[4] * dirW[1] + viewMatrix[8] * dirW[2],
+        viewMatrix[1] * dirW[0] + viewMatrix[5] * dirW[1] + viewMatrix[9] * dirW[2],
+        viewMatrix[2] * dirW[0] + viewMatrix[6] * dirW[1] + viewMatrix[10] * dirW[2]};
+    float L = sqrtf(dirV[0] * dirV[0] + dirV[1] * dirV[1] + dirV[2] * dirV[2]);
+    if (L > 1e-8f)
+    {
+        dirV[0] /= L;
+        dirV[1] /= L;
+        dirV[2] /= L;
+    }
+    glUniform3f(uSpot_position, posV[0], posV[1], posV[2]);
+    glUniform3f(uSpot_direction, dirV[0], dirV[1], dirV[2]);
 
-    // 3) Modell
-    identity(modelMatrix);
-    scale(modelMatrix, modelMatrix, (GLfloat[]){0.25f, 0.25f, 0.25f});
-    glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, modelMatrix);
+    // 4) Punktlicht-Position JEDES Frame in View-Space updaten
+    GLfloat lightW[3] = {2.0f, 2.0f, 5.0f}; // deine Welt-Pos
+    GLfloat lightV[3];
+    transform_point_view(lightV, viewMatrix, lightW);
+    glUniform4f(uLamp_position, lightV[0], lightV[1], lightV[2], 1.0f);
 
     // Draw Call
     glBindVertexArray(vao); // bind vao
     glDrawArrays(GL_TRIANGLES, 0, werte[3]);
-
-    // --- Skybox ---
-    glDepthFunc(GL_LEQUAL); // Skybox darf bei z == 1 schreiben
-    glCullFace(GL_FRONT);   // Innenflächen sichtbar (oder Culling kurz aus)
-
-    glUseProgram(skyboxProgram);
-
-    // View ohne Translation (nur Rotation)
-    GLfloat viewNoTrans[16];
-    identity(viewNoTrans);
-    viewNoTrans[0] = viewMatrix[0];
-    viewNoTrans[1] = viewMatrix[1];
-    viewNoTrans[2] = viewMatrix[2];
-    viewNoTrans[4] = viewMatrix[4];
-    viewNoTrans[5] = viewMatrix[5];
-    viewNoTrans[6] = viewMatrix[6];
-    viewNoTrans[8] = viewMatrix[8];
-    viewNoTrans[9] = viewMatrix[9];
-    viewNoTrans[10] = viewMatrix[10];
-
-    glUniformMatrix4fv(sbViewLoc, 1, GL_FALSE, viewNoTrans);
-    glUniformMatrix4fv(sbProjLoc, 1, GL_FALSE, projMatrix); // falls Aspect/FOV sich änderte
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTex);
-
-    glBindVertexArray(skyboxVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
-
-    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-    glUseProgram(0);
-
-    // States zurücksetzen
-    glCullFace(GL_BACK);
-    glDepthFunc(GL_LESS);
 }
 
 int main(void)
