@@ -73,7 +73,7 @@ void setMaterialGlass(float alpha)
 {
     glUniform4f(uMat_emission, 0, 0, 0, 1);
     glUniform4f(uMat_ambient, 0.02f, 0.02f, 0.03f, 1);
-    glUniform4f(uMat_diffuse, 0.22f, 0.30f, 0.34f, alpha); // Tönung + Alpha
+    glUniform4f(uMat_diffuse, 1.0, 0.00f, 1.0f, alpha); // Tönung + Alpha
     glUniform4f(uMat_specular, 1, 1, 1, 1);
     glUniform1f(uMat_shininess, 256.0f);
 }
@@ -179,7 +179,7 @@ void init()
     uSpot_diffuse = glGetUniformLocation(program, "spotlicht.diffuse");
     uSpot_specular = glGetUniformLocation(program, "spotlicht.specular");
 
-    // Lichter: Directional aus, Punktlicht AN
+    // Lichter an aus 
     glUniform1i(uSun_enabled, 1);
     glUniform1i(uLamp_enabled, 1);
     glUniform1i(uSpot_enabled, 1);
