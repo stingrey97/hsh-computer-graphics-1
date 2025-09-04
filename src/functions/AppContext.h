@@ -13,13 +13,10 @@ typedef struct
     GLuint programID;
     GLuint locationMVP;
 
-    // View and Perspectiv Matrix
-    GLfloat V[16];
-    GLfloat P[16];
-
-    // Cube VAO/VBO
-    GLuint cubeVAO;
-    GLuint cubeVBO;
+    // Kamera
+    GLfloat eye[3];
+    GLfloat look[3];
+    GLfloat up[3];
 
 } AppContext;
 

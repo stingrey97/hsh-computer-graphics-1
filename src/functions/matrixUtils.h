@@ -23,9 +23,20 @@ extern void mat4f_mul_mat4f(GLfloat *out, const GLfloat *left, const GLfloat *ri
  */
 extern void mat4f_mul_vec4f(GLfloat *out, const GLfloat *mat, const GLfloat *vec);
 
-extern void multiply3f(GLfloat *out, const GLfloat *vec, const GLfloat a);
+/**
+ * Setzt einen 3-elementigen Vektor auf die entsprechenden Werte
+ */
+extern void setVec3(GLfloat v[3], GLfloat x, GLfloat y, GLfloat z);
 
-extern void multiply3f2(GLfloat *out, const GLfloat *vec, const GLfloat a, const GLfloat b);
+/**
+ * Kopiert einen Vector von vec nach out, weil das in C sonst nicht geht :-)
+ */
+extern void copyVec3(GLfloat out[3], const GLfloat vec[3]);
+
+/**
+ * Skalare Multiplikation eines 3-elemetnigen Vektors
+ */
+extern void multiply3f(GLfloat *out, const GLfloat *vec, const GLfloat a);
 
 /**
  * Multipliziert zwei 3-elementige Vektoren miteinander

@@ -43,6 +43,14 @@ void mat4f_mul_vec4f(GLfloat *out, const GLfloat *mat, const GLfloat *vec)
     }
 }
 
+void setVec3(GLfloat v[3], const GLfloat x, const GLfloat y, const GLfloat z) {
+    v[0] = x; v[1] = y; v[2] = z;
+}
+
+void copyVec3(GLfloat out[3], const GLfloat vec[3]) {
+    memcpy(out, vec, 3 * sizeof(GLfloat));
+}
+
 void dot3f(GLfloat *out, const GLfloat *a, const GLfloat *b)
 {
     *out = a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
@@ -52,12 +60,6 @@ void multiply3f(GLfloat *out, const GLfloat *vec, const GLfloat a){
     out[0] = vec[0] * a; 
     out[1] = vec[1] * a;
     out[2] = vec[2] * a;
-}
-
-void multiply3f2(GLfloat *out, const GLfloat *vec, const GLfloat a, const GLfloat b){
-    out[0] = vec[0] * a * b; 
-    out[1] = vec[1] * a * b;
-    out[2] = vec[2] * a * b;
 }
 
 void plus3f(GLfloat *out, const GLfloat *v1, const GLfloat *v2)

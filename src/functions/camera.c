@@ -6,146 +6,145 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "AppContext.h"
 #include "matrixUtils.h"
 
-// MousePositions
-double xMousePos;
-double yMousePos;
+#define MAX_PITCH 1.55334306f
+#define FOV 45.0f
+#define KEY_SPEED 3.0f
+#define MOUSE_SPEED 0.05f
+#define START_HORIZONTAL_ANGLE 4.72f
+#define START_VERTICAL_ANGLE 0.0f
+#define DEBUG_MODE
 
-// glowballs
-//GLfloat PerspektiveMatrix[16];
-//GLfloat ViewMatrix[16];
-
-// for deltaTime
 static double lastTime;
 
-// pitch Limit
-const GLfloat PITCH_LIMIT = 1.55334306f; // 89° in Radiant
+static GLfloat INITIAL_EYE[3];
+static GLfloat INITIAL_LOOK[3];
+static GLfloat INITIAL_UP[3];
 
-// position
-GLfloat position[3];
-
-// horizontal angle : toward -Z
-GLfloat horizontalAngle = 3.14f;
-
-// vertical angle : 0, look at the horizon
-GLfloat verticalAngle = 0.0f;
-
-static short start = 0;
-static short debug = 1;
-
-void initCamera(WindowData winData) {
+void initCamera(AppContext *context)
+{
     // Maus verstecken
-    glfwSetInputMode(winData.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(context->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     // Maus in mitte setzen
-    glfwSetCursorPos(winData.window, winData.xWindowSize/2, winData.yWindowSize/2);
+    glfwSetCursorPos(context->window, context->width / 2, context->height / 2);
     // clear Events
     glfwPollEvents();
     // get lastTime
     lastTime = glfwGetTime();
+
+    copyVec3(INITIAL_EYE, context->eye);
+    copyVec3(INITIAL_LOOK, context->look);
+    copyVec3(INITIAL_UP, context->up);
 }
 
-void clamp(GLfloat *out, GLfloat value){
-    if (*out >  value) *out =  value;
-    if (*out < -value) *out = -value;
+void clamp(GLfloat *out, GLfloat value)
+{
+    if (*out > value)
+        *out = value;
+    if (*out < -value)
+        *out = -value;
 }
 
-void camera(GLfloat *out, WindowData winData) {
-    if(start == 0) {
-        glfwSetCursorPos(winData.window, winData.xWindowSize/2, winData.yWindowSize/2);
+void camera(GLfloat *V, GLfloat *P, AppContext *context)
+{
+    static short isInitialized = 0;
+
+    if (isInitialized == 0)
+    {
+        glfwSetCursorPos(context->window, context->width / 2, context->height / 2);
     }
 
-    glfwGetCursorPos(winData.window, &xMousePos, &yMousePos);
-    glfwSetCursorPos(winData.window, winData.xWindowSize/2, winData.yWindowSize/2);
+    static double xMousePos;
+    static double yMousePos;
 
-    //deltaTime
+    static GLfloat horizontalAngle;
+    static GLfloat verticalAngle;
+
+    glfwGetCursorPos(context->window, &xMousePos, &yMousePos);
+    glfwSetCursorPos(context->window, context->width / 2, context->height / 2);
+
+    // Calculate deltaTime
     double currentTime = glfwGetTime();
     GLfloat deltaTime = (GLfloat)(currentTime - lastTime);
     lastTime = currentTime;
 
     // Compute new orientation
-    horizontalAngle += winData.cameraData.mouseSpeed * deltaTime * (GLfloat)(winData.xWindowSize/2 - xMousePos );
-    verticalAngle   += winData.cameraData.mouseSpeed * deltaTime * (GLfloat)( winData.yWindowSize/2 - yMousePos );
-    clamp(&verticalAngle, PITCH_LIMIT);
+    horizontalAngle += MOUSE_SPEED * deltaTime * (GLfloat)(context->width / 2 - xMousePos);
+    verticalAngle += MOUSE_SPEED * deltaTime * (GLfloat)(context->height / 2 - yMousePos);
+    clamp(&verticalAngle, MAX_PITCH);
 
-    if(start == 0) {
-        horizontalAngle = winData.cameraData.startHorizontal;
-        verticalAngle   = winData.cameraData.startVertical; 
+    if (isInitialized == 0)
+    {
+        horizontalAngle = START_HORIZONTAL_ANGLE;
+        verticalAngle = START_VERTICAL_ANGLE;
     }
 
-    if(debug == 1){
-        printf("\n");
-        printf("horizontal:   %f\n", horizontalAngle);
-        printf("vertical:     %f\n", verticalAngle);
-    }
-    
+    // apply new Direction
+    setVec3(context->look,
+            cos(verticalAngle) * sin(horizontalAngle),
+            sin(verticalAngle),
+            cos(verticalAngle) * cos(horizontalAngle));
 
-    //apply new Direction
-    GLfloat direction[3] = {
-        cos(verticalAngle) * sin(horizontalAngle),
-        sin(verticalAngle),
-        cos(verticalAngle) * cos(horizontalAngle)
-    };
-    
-    if(debug == 1) printf("direction 1:  %f,%f,%f\n", direction[0], direction[1], direction[2]);
-
+    // Vector pointing right (u)
     GLfloat right[3] = {
-        sin(horizontalAngle - 3.14f/2.0f),
+        sin(horizontalAngle - 3.14f / 2.0f),
         0,
-        cos(horizontalAngle - 3.14f/2.0f)
-    };
+        cos(horizontalAngle - 3.14f / 2.0f)};
 
     // Move forward
-    if (glfwGetKey(winData.window, GLFW_KEY_UP ) == GLFW_PRESS){
+    if (glfwGetKey(context->window, GLFW_KEY_UP) == GLFW_PRESS)
+    {
         GLfloat dir[3];
-        multiply3f2(dir, direction, deltaTime, winData.cameraData.speed);
-        plus3f(position, position, dir);
+        multiply3f(dir, context->look, deltaTime * KEY_SPEED);
+        plus3f(context->eye, context->eye, dir);
     }
     // Move backward
-    if (glfwGetKey(winData.window, GLFW_KEY_DOWN ) == GLFW_PRESS){
+    if (glfwGetKey(context->window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    {
         GLfloat dir[3];
-        multiply3f2(dir, direction, deltaTime, winData.cameraData.speed);
-        minus3f(position, position, dir);
+        multiply3f(dir, context->look, deltaTime * KEY_SPEED);
+        minus3f(context->eye, context->eye, dir);
     }
     // Strafe right
-    if (glfwGetKey(winData.window, GLFW_KEY_RIGHT ) == GLFW_PRESS){
+    if (glfwGetKey(context->window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+    {
         GLfloat ri[3];
-        multiply3f2(ri, right, deltaTime, winData.cameraData.speed);
-        plus3f(position, position, ri);
+        multiply3f(ri, right, deltaTime * KEY_SPEED);
+        plus3f(context->eye, context->eye, ri);
     }
     // Strafe left
-    if (glfwGetKey(winData.window, GLFW_KEY_LEFT ) == GLFW_PRESS){
+    if (glfwGetKey(context->window, GLFW_KEY_LEFT) == GLFW_PRESS)
+    {
         GLfloat ri[3];
-        multiply3f2(ri, right, deltaTime, winData.cameraData.speed);
-        minus3f(position, position, ri);
+        multiply3f(ri, right, deltaTime * KEY_SPEED);
+        minus3f(context->eye, context->eye, ri);
     }
 
-    //GLfloat FoV = winData.cameraData.FoV - (GLfloat)(5 * 1);
+    // In case we want to add zoom by mousewheel later (change "0" to mousewheel)
+    static GLfloat FoV = FOV - (GLfloat)(5 * 0);
 
-    if(start == 0) {
-        direction[0] = winData.cameraData.startDirection[0];
-        direction[1] = winData.cameraData.startDirection[1];
-        direction[2] = winData.cameraData.startDirection[2];
-
-        position[0] = winData.cameraData.startPosition[0];
-        position[1] = winData.cameraData.startPosition[1];
-        position[2] = winData.cameraData.startPosition[2];
-
-        start = 1;
+    if (isInitialized == 0)
+    {
+        copyVec3(context->eye, INITIAL_EYE);
+        copyVec3(context->look, INITIAL_LOOK);
+        copyVec3(context->up, INITIAL_UP);
+        
+        isInitialized = 1;
     }
 
+    plus3f(context->look, context->look, context->eye);
 
-    plus3f(direction, direction, position);
+    lookAt(V, context->eye, context->look, context->up);
+    perspective(P, FoV, (GLfloat)context->width / (GLfloat)context->height, 0.1f, 100.0f);
 
-    GLfloat up[3] = {winData.cameraData.startUp[0], winData.cameraData.startUp[1], winData.cameraData.startUp[2]};
-
-    lookAt(out, position, direction, up);
-
-    if(debug == 1) {
-        printf("position:     %f,%f,%f\n", position[0], position[1], position[2]);
-        printf("direction 2:  %f,%f,%f\n", direction[0], direction[1], direction[2]);
-        printf("start:        %i", start);
-        printf("\n");
-    }
-    
+#ifdef DEBUG_MODE
+    printf("horizontal:   %f\n", horizontalAngle);
+    printf("vertical:     %f\n", verticalAngle);
+    printf("direction:    %f,%f,%f\n", context->look[0], context->look[1], context->look[2]);
+    printf("position:     %f,%f,%f\n", context->eye[0], context->eye[1], context->eye[2]);
+    printf("start:        %i", isInitialized);
+    printf("\n");
+#endif
 }
