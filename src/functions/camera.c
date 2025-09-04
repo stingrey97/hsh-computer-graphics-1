@@ -1,17 +1,20 @@
+#include "camera.h"
+
+#include <stdio.h>
+#include <math.h>
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <stdio.h>
-#include "camera.h"
+
 #include "matrixUtils.h"
-#include <math.h>
 
 // MousePositions
 double xMousePos;
 double yMousePos;
 
 // glowballs
-GLfloat PerspektiveMatrix[16];
-GLfloat ViewMatrix[16];
+//GLfloat PerspektiveMatrix[16];
+//GLfloat ViewMatrix[16];
 
 // for deltaTime
 static double lastTime;
@@ -117,7 +120,7 @@ void camera(GLfloat *out, WindowData winData) {
         minus3f(position, position, ri);
     }
 
-    GLfloat FoV = winData.cameraData.FoV - (GLfloat)(5 * 1);
+    //GLfloat FoV = winData.cameraData.FoV - (GLfloat)(5 * 1);
 
     if(start == 0) {
         direction[0] = winData.cameraData.startDirection[0];
@@ -131,13 +134,12 @@ void camera(GLfloat *out, WindowData winData) {
         start = 1;
     }
 
-    perspective(PerspektiveMatrix, FoV, winData.xWindowSize / winData.yWindowSize, 0.1f, 100.0f);
 
     plus3f(direction, direction, position);
 
     GLfloat up[3] = {winData.cameraData.startUp[0], winData.cameraData.startUp[1], winData.cameraData.startUp[2]};
 
-    lookAt(ViewMatrix, position, direction, up);
+    lookAt(out, position, direction, up);
 
     if(debug == 1) {
         printf("position:     %f,%f,%f\n", position[0], position[1], position[2]);
@@ -146,5 +148,4 @@ void camera(GLfloat *out, WindowData winData) {
         printf("\n");
     }
     
-    mat4f_mul_mat4f(out, PerspektiveMatrix, ViewMatrix);
 }

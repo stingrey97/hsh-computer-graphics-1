@@ -3,8 +3,8 @@ layout (location =0) in vec3 aPosition;     // Positionen aus dem VBO
 layout (location =1) in vec3 aNormal;       // Normalen aus dem VBO
 
 uniform mat4 modelMatrix;                   // Modellmatrix bringt Objekt in den Weltraum
-//uniform mat4 viewMatrix;                    // Viewmatrix bringt Welt in den Kameraraum
-uniform mat4 PV;                 // Projektionsmatrix bringt Kamera in Clipraum
+uniform mat4 viewMatrix;                    // Viewmatrix bringt Welt in den Kameraraum
+uniform mat4 projMatrix;                 // Projektionsmatrix bringt Kamera in Clipraum
 
 
 out vec3 FragPos;                           // An den Fragment Shader: Weltposition jedes Fragments
@@ -18,5 +18,5 @@ void main(void){
     mat3 normalMatrix = transpose(inverse(mat3(modelMatrix))); // Inverse Transpose für korrekte Normale bei Skalierung
     Normal = normalize(normalMatrix * aNormal);                 // transformierte Normale normalisieren
     
-    gl_Position = PV * worldPos; // Endposition des Vertex im Clipraum
+    gl_Position = projMatrix * viewMatrix * worldPos; // Endposition des Vertex im Clipraum
 }   
