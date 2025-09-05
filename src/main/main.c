@@ -39,6 +39,7 @@ GLint MVLoc, MVPLoc, NormalMLoc;
 Mesh cube;
 Mesh teapot;
 Mesh column;
+Mesh gras;
 
 // Licht Status
 Status status = {1, 1, 1};
@@ -74,6 +75,14 @@ void setMaterialGlass(float alpha)
     glUniform4f(uMat_diffuse, 1.0, 0.00f, 1.0f, alpha); // Tönung + Alpha
     glUniform4f(uMat_specular, 1, 1, 1, 1);
     glUniform1f(uMat_shininess, 256.0f);
+}
+void setMaterialGrass()
+{
+    glUniform4f(uMat_emission, 0.0f, 0.0f, 0.0f, 1.0f);
+    glUniform4f(uMat_ambient, 0.05f, 0.20f, 0.05f, 1.0f);
+    glUniform4f(uMat_diffuse, 0.10f, 0.50f, 0.10f, 1.0f);
+    glUniform4f(uMat_specular, 0.02f, 0.05f, 0.02f, 1.0f);
+    glUniform1f(uMat_shininess, 5.0f);
 }
 
 void init(AppContext *context)
@@ -149,6 +158,7 @@ void init(AppContext *context)
     loadMesh("objects/teapot.obj", &teapot);
     loadMesh("objects/column.obj", &column);
     loadMesh("objects/cube.obj", &cube);
+    loadMesh("objects/gras.obj", &gras);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -194,6 +204,13 @@ void draw(AppContext *context)
     scale(M, M, (GLfloat[]){0.14f, 0.14f, 0.14f});
     setMaterialPolishedGold();
     drawMeshWithModel(&teapot, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+
+    // 3) Gras
+    identity(M);
+    translate(M, M, (GLfloat[]){0.0f, -0.01f, 0.0f});
+    scale(M, M, (GLfloat[]){0.42f, 0.45f, 0.42f});
+    setMaterialGrass();
+    drawMeshWithModel(&gras, V, P, M, MVLoc, MVPLoc, NormalMLoc);
 
     // Glaswürfel
     identity(M);
