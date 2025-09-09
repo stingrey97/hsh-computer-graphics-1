@@ -15,6 +15,8 @@
 #define MOUSE_SPEED 0.05f
 #define START_HORIZONTAL_ANGLE 4.72f
 #define START_VERTICAL_ANGLE 0.0f
+#define FIXED_CAMERA
+#define CAMERA_HEIGHT 2.7f
 #define NO_DEBUG_MODE
 
 static double lastTime;
@@ -121,6 +123,11 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
         multiply3f(ri, right, deltaTime * KEY_SPEED);
         minus3f(context->eye, context->eye, ri);
     }
+
+    #ifdef FIXED_CAMERA
+        context->eye[1] = CAMERA_HEIGHT;
+    #endif
+
 
     // In case we want to add zoom by mousewheel later (change "0" to mousewheel)
     static GLfloat FoV = FOV - (GLfloat)(5 * 0);
