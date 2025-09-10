@@ -51,6 +51,19 @@ uniform struct lightSourceS{
     float quadratic;  
 }spotlicht;
 
+//Nebel
+uniform struct fog{
+    vec3  color;
+    float density;
+    int   enabled;
+}nebel;
+
+float computeFogFactorExp2(float d) {
+    float x = nebel.density * d;
+    float f = exp(-x * x);
+    return clamp(f, 0.0, 1.0);
+}
+
 void main(void)
 {
     vec3 light;
@@ -139,5 +152,11 @@ void main(void)
         col += ambient + diffuse + specular;
     }
 
+    if (nebel.enabled == 1) {
+        float dView   = length(Position);
+        float fogFact = computeFogFactorExp2(dView);
+        col = mix(nebel.color, col, fogFact);
+    }
+
     FragColor = vec4(col,alpha);
-}
+}   
