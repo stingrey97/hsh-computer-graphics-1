@@ -137,6 +137,7 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
     plus3f(context->look, context->look, context->eye);
 
     lookAt(V, context->eye, context->look, context->up);
+    
     perspective(P, FoV, (GLfloat)context->width / (GLfloat)context->height, 0.1f, 100.0f);
 
 #ifdef DEBUG_MODE

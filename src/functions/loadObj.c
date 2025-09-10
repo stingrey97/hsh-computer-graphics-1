@@ -1,5 +1,9 @@
 #include "loadObj.h"
 
+#include <stdio.h>
+
+#include <GL/glew.h>
+
 typedef struct
 {
     float x, y, z;

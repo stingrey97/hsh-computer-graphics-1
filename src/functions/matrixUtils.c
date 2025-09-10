@@ -269,7 +269,6 @@ void lookAt(GLfloat *out, const GLfloat *eye, const GLfloat *look, const GLfloat
         return;
     }
     
-
     cross3f(v, n, u);
 
     norm3f(n, n);

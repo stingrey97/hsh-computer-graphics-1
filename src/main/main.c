@@ -1,12 +1,16 @@
+// Standard libs
 #include <stdio.h>
 #include <math.h>
 
+// GL libs
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+// Third party libs
 #define STB_IMAGE_IMPLEMENTATION
 #include "../functions/stb_image.h"
 
+// Own libs
 #include "../functions/AppContext.h"
 #include "../functions/matrixUtils.h"
 #include "../functions/loadShaders.h"
@@ -14,7 +18,9 @@
 #include "../functions/drawUtils.h"
 #include "../functions/lightUtils.h"
 #include "../functions/camera.h"
+#include "../functions/Skybox.h"
 
+// Constants
 #define INIT_WINDOW_TITLE "OpenGL Program"
 #define INIT_WINDOW_WIDTH 1024
 #define INIT_WINDOW_HEIGHT 768
@@ -78,7 +84,7 @@ void setMaterialGlass(float alpha)
 void init(AppContext *context)
 {
     // Initial camera
-    setVec3(context->eye, 5, 0, 0);
+    setVec3(context->eye, 0, 0, 0);
     setVec3(context->look, 0, 0, 0);
     setVec3(context->up, 0, 1, 0);
 
@@ -154,6 +160,11 @@ void init(AppContext *context)
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
+    // Skybox
+    initSkybox(context);
+    glUseProgram(context->skyboxProgramID);
+    glUniform1i(glGetUniformLocation(context->skyboxProgramID, "skybox"), 0);
 }
 
 void draw(AppContext *context)
@@ -196,6 +207,27 @@ void draw(AppContext *context)
     scale(M, M, (GLfloat[]){0.24f, 0.24f, 0.24f});
     setMaterialGlass(0.18f);
     drawtransparentMeshWithModel(&cube, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+
+    // Skybox
+    glCullFace(GL_FRONT);
+    glUseProgram(context->skyboxProgramID);
+    glDepthFunc(GL_LEQUAL);
+    GLfloat VP[16];
+    GLfloat V_noT[16];
+    memcpy(V_noT, V, sizeof(V_noT));
+    V_noT[12] = V_noT[13] = V_noT[14] = 0.0f;
+    mat4f_mul_mat4f(VP, P, V_noT);
+    glUniformMatrix4fv(glGetUniformLocation(context->skyboxProgramID, "VP"), 1, GL_FALSE, VP);
+
+    glBindVertexArray(context->skyboxVAO);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, context->skyboxTexture);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    glCullFace(GL_BACK);
+    
+    // Switch back to the normal depth functionx
+    glDepthFunc(GL_LESS);
 }
 
 int main(void)
@@ -218,7 +250,7 @@ int main(void)
 
     if (!context.window)
     {
-        printf("FEHLER BEIM FENSTER ERSTELLEN\n");
+        printf("Error creating window\n");
         glfwTerminate();
         return -1;
     }

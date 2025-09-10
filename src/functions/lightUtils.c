@@ -1,5 +1,12 @@
 #include "lightUtils.h"
 
+#include <stdio.h>
+#include <math.h>
+
+#include <GL/glew.h>
+
+#include "matrixUtils.h"
+
 void initializeDirectionalLight(GLint uSun_ambient, GLint uSun_diffuse, GLint uSun_specular)
 {
     glUniform4f(uSun_ambient, 0.35f, 0.35f, 0.35f, 1.0f);

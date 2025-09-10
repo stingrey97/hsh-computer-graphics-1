@@ -1,3 +1,4 @@
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 #ifndef APP_CONTEXT_H
@@ -12,6 +13,11 @@ typedef struct
     // Shader
     GLuint programID;
     GLuint locationMVP;
+
+    // Skybox
+    GLuint skyboxProgramID;
+    GLuint skyboxVAO;
+    GLuint skyboxTexture;
 
     // Kamera
     GLfloat eye[3];
