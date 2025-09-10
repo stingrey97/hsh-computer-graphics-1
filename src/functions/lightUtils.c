@@ -9,9 +9,9 @@
 
 void initializeDirectionalLight(GLint uSun_ambient, GLint uSun_diffuse, GLint uSun_specular)
 {
-    glUniform4f(uSun_ambient, 0.35f, 0.35f, 0.35f, 1.0f);
-    glUniform4f(uSun_diffuse, 1.0f, 1.0f, 1.0f, 1.0f);
-    glUniform4f(uSun_specular, 1.0f, 1.0f, 1.0f, 1.0f);
+    glUniform4f(uSun_ambient, 0.14f, 0.16f, 0.22f, 1.0f);
+    glUniform4f(uSun_diffuse, 0.28f, 0.32f, 0.44f, 1.0f);
+    glUniform4f(uSun_specular, 0.07f, 0.08f, 0.12f, 1.0f);
 }
 
 void initializePointLight(GLint uLamp_ambient, GLint uLamp_diffuse, GLint uLamp_specular, GLint uLamp_linear, GLint uLamp_quadratic)
@@ -24,18 +24,21 @@ void initializePointLight(GLint uLamp_ambient, GLint uLamp_diffuse, GLint uLamp_
     glUniform1f(uLamp_quadratic, 0.0017f);
 }
 
-void initializeSpotLight(GLint uSpot_ambient, GLint uSpot_diffuse, GLint uSpot_specular, GLint uSpot_innerCone, GLint uSpot_outerCone)
+void initializeSpotLight(GLint uSpot_ambient, GLint uSpot_diffuse, GLint uSpot_specular, GLint uSpot_innerCone, GLint uSpot_outerCone, GLint uSpot_linear, GLint uSpot_quadratic)
 {
-    glUniform4f(uSpot_ambient, 0.10f, 0.10f, 0.10f, 1.0f);
-    glUniform4f(uSpot_diffuse, 1.00f, 1.00f, 1.00f, 1.0f);
-    glUniform4f(uSpot_specular, 1.00f, 1.00f, 1.00f, 1.0f);
+    glUniform4f(uSpot_ambient, 0.1, 0.1f, 0.1f, 1.0f);
+    glUniform4f(uSpot_diffuse, 2.00f, 2.00f, 2.00f, 1.0f);
+    glUniform4f(uSpot_specular, 2.00f, 2.00f, 2.00f, 1.0f);
 
-    float innerDeg = 12.0f, outerDeg = 20.0f;
+    glUniform1f(uSpot_linear, 0.002f);
+    glUniform1f(uSpot_quadratic, 0.00002f);
+
+    float innerDeg = 11.0f, outerDeg = 18.0f;
     float innerRad = innerDeg * (float)PI / 180.0f;
     float outerRad = outerDeg * (float)PI / 180.0f;
 
     glUniform1f(uSpot_innerCone, cosf(innerRad));
-    glUniform1f(uSpot_outerCone, cosf(innerRad));
+    glUniform1f(uSpot_outerCone, cosf(outerRad));
 }
 
 void setPointLight(GLint uLamp_position, const float viewMatrix[16], float x, float y, float z)
