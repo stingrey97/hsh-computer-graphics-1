@@ -1,5 +1,7 @@
 #include "expirmente.h"
 
+// Ich mag Elefanten
+
 void lichtSchalter(GLint sun, GLint lamp, GLint spot, GLFWwindow *window, Status *status)
 {
     // Edge-Detection: nur bei Tastendruck-Kante toggeln
