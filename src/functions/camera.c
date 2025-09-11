@@ -124,10 +124,16 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
         minus3f(context->eye, context->eye, ri);
     }
 
-    #ifdef FIXED_CAMERA
-        context->eye[1] = CAMERA_HEIGHT;
-    #endif
+#ifdef FIXED_CAMERA
+    static int crouch;
 
+    if (glfwGetKey(context->window, GLFW_KEY_C) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+        crouch = 1;
+    else
+        crouch = 0;
+
+    context->eye[1] = crouch ? CAMERA_HEIGHT / 2 : CAMERA_HEIGHT;
+#endif
 
     // In case we want to add zoom by mousewheel later (change "0" to mousewheel)
     static GLfloat FoV = FOV - (GLfloat)(5 * 0);
@@ -137,14 +143,14 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
         copyVec3(context->eye, INITIAL_EYE);
         copyVec3(context->look, INITIAL_LOOK);
         copyVec3(context->up, INITIAL_UP);
-        
+
         isInitialized = 1;
     }
 
     plus3f(context->look, context->look, context->eye);
 
     lookAt(V, context->eye, context->look, context->up);
-    
+
     perspective(P, FoV, (GLfloat)context->width / (GLfloat)context->height, 0.1f, 100.0f);
 
 #ifdef DEBUG_MODE
