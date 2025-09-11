@@ -6,7 +6,7 @@
 #include "../functions/Textures.h"
 #include "../functions/loadShaders.h"
 
-#define SKYBOX_MYSTIC // SKYBOX_DAY // SKYBOX_NIGHT // SKYBOX_MYSTIC
+#define SKYBOX_NIGHT // SKYBOX_DAY // SKYBOX_NIGHT // SKYBOX_MYSTIC
 
 void initSkybox(AppContext *context)
 {
@@ -68,12 +68,12 @@ void initSkybox(AppContext *context)
 #ifdef SKYBOX_NIGHT
     const char *facesCubemap[6] =
         {
-            "textures/skybox/nighttime/px.png",
-            "textures/skybox/nighttime/nx.png",
-            "textures/skybox/nighttime/py.png",
-            "textures/skybox/nighttime/ny.png",
-            "textures/skybox/nighttime/pz.png",
-            "textures/skybox/nighttime/nz.png",
+            "textures/skybox/nighttime/nightRT.png",
+            "textures/skybox/nighttime/nightLF.png",
+            "textures/skybox/nighttime/nightUP.png",
+            "textures/skybox/nighttime/nightDN.png",
+            "textures/skybox/nighttime/nightFT.png",
+            "textures/skybox/nighttime/nightBK.png",
         };
 #endif
 
