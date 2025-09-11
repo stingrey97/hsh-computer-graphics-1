@@ -1,16 +1,23 @@
 #version 330 core
 
 smooth in vec3 Position;   // View-Space: aus dem VS
-smooth in vec3 Normal;     // View-Space: aus dem VS
+in vec2 TexCoord;          // View-SPace: aus dem VS
+smooth in mat3 TBN;
+
 out vec4 FragColor;
 
-// Matreial uniform Struct 
+// Textur
+uniform sampler2D uAlbedo;
+uniform sampler2D uNormalMap;
+uniform sampler2D uRoughness;
+
+// Material uniform Struct 
 uniform struct Material {
     vec4 emission; 
     vec4 ambient;
-    vec4 diffuse;
+    vec4 diffuse; // nur alpha rest von Textur
     vec4 specular;
-    float shininess;
+    float shininess; // ungenutzt gerade nur Textur roughness
 } material;
 
 //Richtungslicht Struct
@@ -61,26 +68,37 @@ void main(void)
     vec3 diffuse;
     vec3 specular;
 
+    vec3 albedo = texture(uAlbedo, TexCoord).rgb;
 
-    vec3 normal = normalize(Normal);
+    vec3 n_ts = texture(uNormalMap, TexCoord).rgb * 2.0 - 1.0;
+    vec3 normalMapVS = normalize(TBN * n_ts);
+    vec3 normal = normalMapVS;
+
+    float rough = texture(uRoughness, TexCoord).r;
+    rough = clamp(rough, 0.0, 1.0);
+    float shininessEff = mix(128.0, 2.0, rough);
+
     vec3 view = normalize(-Position);
     vec3 col   = material.emission.rgb;
     float alpha = material.diffuse.a;
 
+    vec3 kd = albedo;
+    vec3 ka = albedo;
+
     // Richtungslicht
     if(richtungslicht.enabled==1){
         light = normalize(-richtungslicht.direction);
-        ambient = (richtungslicht.ambient.rgb) * (material.ambient.rgb);
+        ambient = (richtungslicht.ambient.rgb) * ka;
 
         NdotL = max(dot(normal, light), 0.0);
         float specAmt = 0.0;
         if (NdotL > 0.0) {
           reflection = reflect(-light, normal);
           float RV = max(dot(reflection, view), 1e-6);
-          specAmt = pow(RV, material.shininess);
+          specAmt = pow(RV, shininessEff);
         }
 
-        diffuse  = (richtungslicht.diffuse.rgb) * NdotL * (material.diffuse.rgb);
+        diffuse  = (richtungslicht.diffuse.rgb) * NdotL * kd;
         specular = (material.specular.rgb * specAmt * richtungslicht.specular.rgb);
 
         col += ambient + diffuse + specular;
@@ -97,11 +115,11 @@ void main(void)
         if (NdotL > 0.0) {
           reflection = reflect(-light, normal);
           float RV = max(dot(reflection, view), 1e-6);
-          specAmt = pow(RV, material.shininess);
+          specAmt = pow(RV, shininessEff);
         }
 
-        ambient = attenuation * (punktlicht.ambient.rgb) * (material.ambient.rgb);        
-        diffuse = attenuation * (punktlicht.diffuse.rgb) * NdotL * (material.diffuse.rgb);
+        ambient = attenuation * (punktlicht.ambient.rgb) * ka;        
+        diffuse = attenuation * (punktlicht.diffuse.rgb) * NdotL * kd;
         specular = attenuation * (material.specular.rgb * specAmt * punktlicht.specular.rgb);
 
         col += ambient + diffuse + specular;
@@ -124,17 +142,17 @@ void main(void)
         diffuse  = vec3(0.0);
         specular = vec3(0.0);
         if (theta > spotlicht.outerCone) {
-            ambient  = spotlicht.ambient.rgb * material.ambient.rgb;
+            ambient  = spotlicht.ambient.rgb * ka;
 
             diffuse  = intensity * spotlicht.diffuse.rgb
                                 * max(dot(normal, light), 0.0)
-                                * material.diffuse.rgb;
+                                * kd;
 
             specular = intensity * spotlicht.specular.rgb
-                                * pow(max(dot(reflection, view), 0.0), material.shininess)
+                                * pow(max(dot(reflection, view), 0.0), shininessEff)
                                 * material.specular.rgb;
         } else {
-            ambient = spotlicht.ambient.rgb * material.ambient.rgb;
+            ambient = spotlicht.ambient.rgb * ka;
         }
         col += ambient + diffuse + specular;
     }

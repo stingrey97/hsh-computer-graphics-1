@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "loadObj.h"
+#include <math.h>
+#include <string.h>
 typedef struct
 {
     GLuint vao;

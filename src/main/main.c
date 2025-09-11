@@ -15,6 +15,7 @@
 #include "../functions/lightUtils.h"
 #include "../functions/camera.h"
 #include "../functions/expirmente.h"
+#include "../functions/Textures.h"
 
 #define INIT_WINDOW_TITLE "OpenGL Program"
 #define INIT_WINDOW_WIDTH 1024
@@ -31,6 +32,12 @@ GLint uLamp_enabled, uLamp_position, uLamp_ambient, uLamp_diffuse, uLamp_specula
 
 // Spotlicht (struct lightSourceS spotlicht)
 GLint uSpot_enabled, uSpot_position, uSpot_direction, uSpot_innerCone, uSpot_outerCone, uSpot_ambient, uSpot_diffuse, uSpot_specular, uSpot_linear, uSpot_quadratic;
+
+// Texture uniform
+GLint albedoLoc, normalLoc, roughnessLoc;
+
+// Column textures
+GLuint albedoColumn, normalColumn, roughnessColumn;
 
 // Uniform Standorte
 GLint MVLoc, MVPLoc, NormalMLoc;
@@ -141,6 +148,21 @@ void init(AppContext *context)
     uSpot_linear = glGetUniformLocation(context->programID, "spotlicht.linear");
     uSpot_quadratic = glGetUniformLocation(context->programID, "spotlicht.quadratic");
 
+    // Textur
+    albedoLoc = glGetUniformLocation(context->programID, "uAlbedo");
+    normalLoc = glGetUniformLocation(context->programID, "uNormalMap");
+    roughnessLoc = glGetUniformLocation(context->programID, "uRoughness");
+
+    // Texturkanäle
+    glUniform1i(albedoLoc, 0);
+    glUniform1i(normalLoc, 1);
+    glUniform1i(roughnessLoc, 2);
+
+    // Texturen laden
+    albedoColumn = loadTexture2D("textures/column/column_albedo.png", 1);
+    normalColumn = loadTexture2D("textures/column/column_normal.002.png", 0);
+    roughnessColumn = loadTexture2D("textures/column/column_roughness.png", 0);
+
     // Lichter an aus
     glUniform1i(uSun_enabled, 1);
     glUniform1i(uLamp_enabled, 1);
@@ -166,7 +188,8 @@ void init(AppContext *context)
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(0.0f, 0.5f, 0.5f, 1.0f);
+    glEnable(GL_FRAMEBUFFER_SRGB);
 }
 
 void draw(AppContext *context)
@@ -182,7 +205,7 @@ void draw(AppContext *context)
     lichtSchalter(uSun_enabled, uLamp_enabled, uSpot_enabled, context->window, &status);
 
     // Richtungslicht an die Kamera setzten
-    setDirectionalLight(uSun_direction, V, 1.0f, 1.0f, 1.0f);
+    setDirectionalLight(uSun_direction, V, 1.0f, -1.0f, -1.0f);
 
     // Headlight (Spotlicht) immer auf die Kamera setzen
     setSpotLight(uSpot_position, uSpot_direction, V, context->eye, context->look);
@@ -191,33 +214,18 @@ void draw(AppContext *context)
     setPointLight(uLamp_position, V, 2.0f, 2.0f, 5.0f);
 
     // 1) Graue Säule (gestreckter Cube)
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, albedoColumn);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normalColumn);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, roughnessColumn);
     GLfloat M[16];
     identity(M);
     translate(M, M, (GLfloat[]){0.0f, -0.01f, 0.0f});
     scale(M, M, (GLfloat[]){0.42f, 0.45f, 0.42f});
     setMaterialGrayPillar();
     drawMeshWithModel(&column, V, P, M, MVLoc, MVPLoc, NormalMLoc);
-
-    // 2) Golderner Teapot
-    identity(M);
-    translate(M, M, (GLfloat[]){0.0f, 1.6f, 0.0f});
-    scale(M, M, (GLfloat[]){0.14f, 0.14f, 0.14f});
-    setMaterialPolishedGold();
-    drawMeshWithModel(&teapot, V, P, M, MVLoc, MVPLoc, NormalMLoc);
-
-    // 3) Gras
-    identity(M);
-    translate(M, M, (GLfloat[]){0.0f, -0.01f, 0.0f});
-    scale(M, M, (GLfloat[]){0.42f, 0.45f, 0.42f});
-    setMaterialGrass();
-    drawMeshWithModel(&gras, V, P, M, MVLoc, MVPLoc, NormalMLoc);
-
-    // Glaswürfel
-    identity(M);
-    translate(M, M, (GLfloat[]){0.0f, 1.42f, 0.0f});
-    scale(M, M, (GLfloat[]){0.24f, 0.24f, 0.24f});
-    setMaterialGlass(0.18f);
-    drawtransparentMeshWithModel(&cube, V, P, M, MVLoc, MVPLoc, NormalMLoc);
 }
 
 int main(void)
