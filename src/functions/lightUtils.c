@@ -9,8 +9,8 @@
 
 void initializeDirectionalLight(GLint uSun_ambient, GLint uSun_diffuse, GLint uSun_specular)
 {
-    glUniform4f(uSun_ambient, 0.14f, 0.16f, 0.22f, 1.0f);
-    glUniform4f(uSun_diffuse, 0.28f, 0.32f, 0.44f, 1.0f);
+    glUniform4f(uSun_ambient, 0.07f, 0.08f, 0.11f, 1.0f);
+    glUniform4f(uSun_diffuse, 0.14f, 0.16f, 0.22f, 1.0f);
     glUniform4f(uSun_specular, 0.07f, 0.08f, 0.12f, 1.0f);
 }
 
