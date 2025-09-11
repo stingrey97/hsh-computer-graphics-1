@@ -125,7 +125,13 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
     }
 
     #ifdef FIXED_CAMERA
-        context->eye[1] = CAMERA_HEIGHT;
+        static int crouch;
+        
+        if(glfwGetKey(context->window, GLFW_KEY_C) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+            crouch = 1;
+        else crouch = 0;
+
+        context->eye[1] = crouch ? CAMERA_HEIGHT / 2 : CAMERA_HEIGHT;
     #endif
 
 

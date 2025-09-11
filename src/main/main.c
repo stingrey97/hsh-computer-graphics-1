@@ -21,6 +21,7 @@
 #include "../functions/expirmente.h"
 #include "../functions/fogUtils.h"
 #include "../functions/Skybox.h"
+#include "../functions/matrixTester.h"
 
 // Constants
 #define INIT_WINDOW_TITLE "OpenGL Program"
@@ -393,6 +394,8 @@ int main(void)
     glewInit();
 
     init(&context);
+
+    testFunktion();
 
     while (!glfwWindowShouldClose(context.window))
     {
