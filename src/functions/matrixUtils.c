@@ -132,6 +132,30 @@ void printMat4(const GLfloat *mat)
     }
 }
 
+int compareVecN(const GLfloat *vecA, const GLfloat *vecB, const int n) {
+    for (int i = 0; i < n; i++)
+    {
+        if(vecA[i] != vecB[i]) return 0;
+    }
+    return 1;
+}
+
+int compareVec3(const GLfloat *vecA, const GLfloat vecB) { return compareVecN(vecA, vecB, 3); }
+
+int compareVec4(const GLfloat *vecA, const GLfloat vecB) { return compareVecN(vecA, vecB, 4); }
+
+int compareMat4(const GLfloat *matA, const GLfloat *matB) {
+    for (int i = 0; i < 4; i++)
+    {
+        for (int j = 0; j < count; j++)
+        {
+            if(matA[j * 4 + i] != matB[j * 4 + i]) return 0;
+        }
+        
+    }
+    return 1;
+}
+
 void mat3_from_mat4(GLfloat out[9], const GLfloat M[16]) {
     out[0]=M[0];  out[1]=M[1];  out[2]=M[2];  
     out[3]=M[4];  out[4]=M[5];  out[5]=M[6];  
