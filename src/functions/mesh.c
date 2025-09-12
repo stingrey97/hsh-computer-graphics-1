@@ -1,5 +1,5 @@
 // Self
-#include "mesh.h"
+#include "Mesh.h"
 
 // Standard libs
 #include <stdio.h>

@@ -1,6 +1,8 @@
 // Standard libs
 #include <stdio.h>
 #include <math.h>
+#include <unistd.h>
+#include <errno.h>
 
 // OpenGL
 #include <GL/glew.h>
@@ -118,7 +120,7 @@ void setMaterialSlenderman()
 }
 
 void init(AppContext *context)
-{
+{ 
     // Initial camera
     setVec3(context->eye, 5, 0, 0);
     setVec3(context->look, 0, 0, 0);
@@ -361,6 +363,8 @@ void draw(AppContext *context)
 
 int main(void)
 {
+    chdir("src"); // For different entry-points
+    errno = 0;    // Reset if pwd was already src
 
     AppContext context = {0};
     context.width = INIT_WINDOW_WIDTH;

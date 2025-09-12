@@ -1,4 +1,5 @@
 #include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
 #ifndef EXPIRMENTE_H
 #define EXPIRMENTE_H

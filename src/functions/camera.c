@@ -1,5 +1,5 @@
 // Self
-#include "camera.h"
+#include "Camera.h"
 
 // Standard libs
 #include <stdio.h>
