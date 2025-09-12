@@ -1,11 +1,15 @@
+// Self
 #include "mesh.h"
 
+// Standard libs
 #include <stdio.h>
 #include <stdlib.h>
 
+// OpenGL
 #include <GL/glew.h>
 
-#include "loadObj.h"
+// Own libs
+#include "ObjectLoader.h"
 
 void loadMesh(const char* filename, Mesh *out){
     int werte[4];

@@ -1,4 +1,8 @@
-#include "fogUtils.h"
+// Self
+#include "FogUtils.h"
+
+// OpenGL
+#include <GL/glew.h>
 
 void initializeFog(GLint uFogColor, GLint uFogDensity)
 {

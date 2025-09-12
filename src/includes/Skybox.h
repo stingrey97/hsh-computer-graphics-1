@@ -1,4 +1,4 @@
-#include "../functions/AppContext.h"
+#include "AppContext.h"
 
 #ifndef SKYBOX_H
 #define SKYBOX_H

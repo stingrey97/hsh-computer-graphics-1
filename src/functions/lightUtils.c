@@ -1,11 +1,15 @@
-#include "lightUtils.h"
+// Self
+#include "LightUtils.h"
 
+// Standard libs
 #include <stdio.h>
 #include <math.h>
 
+// OpenGL
 #include <GL/glew.h>
 
-#include "matrixUtils.h"
+// Own libs
+#include "MatrixUtils.h"
 
 void initializeDirectionalLight(GLint uSun_ambient, GLint uSun_diffuse, GLint uSun_specular)
 {

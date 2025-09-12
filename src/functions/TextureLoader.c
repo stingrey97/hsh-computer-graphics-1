@@ -1,10 +1,14 @@
-#include "Textures.h"
+// Self
+#include "TextureLoader.h"
 
+// Standard libs
 #include <stdio.h>
 
+// OpenGL
 #include <GL/glew.h>
 
-#include "stb_image.h"
+// Own libs
+#include "ImageLoader.h"
 
 GLuint loadTexture2D(void)
 {

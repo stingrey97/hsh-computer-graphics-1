@@ -1,8 +1,11 @@
-#include "loadObj.h"
+// Self
+#include "ObjectLoader.h"
 
+// Standard libs
 #include <stdio.h>
 #include <stdlib.h>
 
+// OepnGL
 #include <GL/glew.h>
 
 typedef struct

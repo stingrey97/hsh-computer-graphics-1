@@ -1,9 +1,12 @@
-#include "../functions/loadShaders.h"
+// Self
+#include "ShaderLoader.h"
 
+// Standard libs
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+// OpenGL
 #include <GL/glew.h>
 
 char* readShaderCode(const char* file_path) {

@@ -1,6 +1,8 @@
-#include "expirmente.h"
+// Self
+#include "Experiments.h"
 
-// Ich mag Elefanten
+// OpenGL
+#include <GLFW/glfw3.h>
 
 void lichtSchalter(GLint sun, GLint lamp, GLint spot, GLFWwindow *window, Status *status)
 {

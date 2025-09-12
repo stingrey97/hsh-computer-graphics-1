@@ -2,25 +2,25 @@
 #include <stdio.h>
 #include <math.h>
 
-// GL libs
+// OpenGL
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 // Third party libs
 #define STB_IMAGE_IMPLEMENTATION
-#include "../functions/stb_image.h"
+#include "includes/ImageLoader.h"
 
 // Own libs
-#include "../functions/AppContext.h"
-#include "../functions/matrixUtils.h"
-#include "../functions/loadShaders.h"
-#include "../functions/mesh.h"
-#include "../functions/drawUtils.h"
-#include "../functions/lightUtils.h"
-#include "../functions/camera.h"
-#include "../functions/expirmente.h"
-#include "../functions/fogUtils.h"
-#include "../functions/Skybox.h"
+#include "AppContext.h"
+#include "MatrixUtils.h"
+#include "ShaderLoader.h"
+#include "Mesh.h"
+#include "DrawUtils.h"
+#include "LightUtils.h"
+#include "Camera.h"
+#include "Experiments.h"
+#include "FogUtils.h"
+#include "Skybox.h"
 
 // Constants
 #define INIT_WINDOW_TITLE "OpenGL Program"

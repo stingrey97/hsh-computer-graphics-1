@@ -1,10 +1,13 @@
-#include "../functions/Skybox.h"
+// Self
+#include "Skybox.h"
 
+// Standard libs
 #include <GL/glew.h>
 
-#include "../functions/AppContext.h"
-#include "../functions/Textures.h"
-#include "../functions/loadShaders.h"
+// Own libs
+#include "AppContext.h"
+#include "TextureLoader.h"
+#include "ShaderLoader.h"
 
 #define SKYBOX_NIGHT // SKYBOX_DAY // SKYBOX_NIGHT // SKYBOX_MYSTIC
 

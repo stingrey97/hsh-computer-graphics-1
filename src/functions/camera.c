@@ -1,14 +1,20 @@
+// Self
 #include "camera.h"
 
+// Standard libs
 #include <stdio.h>
 #include <math.h>
+#include <assert.h>
 
+// OpenGL
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+// Own libs
 #include "AppContext.h"
-#include "matrixUtils.h"
+#include "MatrixUtils.h"
 
+// Constants
 #define MAX_PITCH 1.55334306f
 #define FOV 45.0f
 #define KEY_SPEED 3.0f
@@ -27,6 +33,8 @@ static GLfloat INITIAL_UP[3];
 
 void initCamera(AppContext *context)
 {
+    assert(context->window != NULL);
+
     // Maus verstecken
     glfwSetInputMode(context->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     // Maus in mitte setzen
@@ -124,10 +132,9 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
         minus3f(context->eye, context->eye, ri);
     }
 
-    #ifdef FIXED_CAMERA
-        context->eye[1] = CAMERA_HEIGHT;
-    #endif
-
+#ifdef FIXED_CAMERA
+    context->eye[1] = CAMERA_HEIGHT;
+#endif
 
     // In case we want to add zoom by mousewheel later (change "0" to mousewheel)
     static GLfloat FoV = FOV - (GLfloat)(5 * 0);
@@ -137,14 +144,14 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
         copyVec3(context->eye, INITIAL_EYE);
         copyVec3(context->look, INITIAL_LOOK);
         copyVec3(context->up, INITIAL_UP);
-        
+
         isInitialized = 1;
     }
 
     plus3f(context->look, context->look, context->eye);
 
     lookAt(V, context->eye, context->look, context->up);
-    
+
     perspective(P, FoV, (GLfloat)context->width / (GLfloat)context->height, 0.1f, 100.0f);
 
 #ifdef DEBUG_MODE

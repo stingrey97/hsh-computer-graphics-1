@@ -6,9 +6,9 @@
 typedef struct
 {
     GLuint vao;
-    GLsizei count; // glDrawArrays count
+    GLsizei count;
 } Mesh;
 
-extern void loadMesh(const char* filename, Mesh *out);
+extern void loadMesh(const char *filename, Mesh *out);
 
 #endif
