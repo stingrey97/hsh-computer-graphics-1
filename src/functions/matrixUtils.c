@@ -140,14 +140,14 @@ int compareVecN(const GLfloat *vecA, const GLfloat *vecB, const int n) {
     return 1;
 }
 
-int compareVec3(const GLfloat *vecA, const GLfloat vecB) { return compareVecN(vecA, vecB, 3); }
+int compareVec3(const GLfloat *vecA, const GLfloat *vecB) { return compareVecN(vecA, vecB, 3); }
 
-int compareVec4(const GLfloat *vecA, const GLfloat vecB) { return compareVecN(vecA, vecB, 4); }
+int compareVec4(const GLfloat *vecA, const GLfloat *vecB) { return compareVecN(vecA, vecB, 4); }
 
 int compareMat4(const GLfloat *matA, const GLfloat *matB) {
     for (int i = 0; i < 4; i++)
     {
-        for (int j = 0; j < count; j++)
+        for (int j = 0; j < 4; j++)
         {
             if(matA[j * 4 + i] != matB[j * 4 + i]) return 0;
         }
