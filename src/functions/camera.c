@@ -11,7 +11,7 @@
 
 #define MAX_PITCH 1.55334306f
 #define FOV 45.0f
-#define KEY_SPEED 3.0f
+#define KEY_SPEED glfwGetKey(context->window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS ? 5.0f : 3.0f
 #define MOUSE_SPEED 0.05f
 #define START_HORIZONTAL_ANGLE 4.72f
 #define START_VERTICAL_ANGLE 0.0f
@@ -125,7 +125,7 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
     }
 
     #ifdef FIXED_CAMERA
-        context->eye[1] = CAMERA_HEIGHT;
+        context->eye[1] = (glfwGetKey(context->window, GLFW_KEY_C) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) ? CAMERA_HEIGHT / 2.f : CAMERA_HEIGHT;
     #endif
 
 
