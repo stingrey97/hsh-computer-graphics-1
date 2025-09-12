@@ -47,6 +47,7 @@ Mesh cube;
 Mesh teapot;
 Mesh column;
 Mesh gras;
+Mesh cottage;
 
 // Licht Status
 Status status = {1, 1, 1};
@@ -159,9 +160,8 @@ void init(AppContext *context)
     glUniform1i(roughnessLoc, 2);
 
     // Texturen laden
-    albedoColumn = loadTexture2D("textures/column/column_albedo.png", 1);
-    normalColumn = loadTexture2D("textures/column/column_normal.002.png", 0);
-    roughnessColumn = loadTexture2D("textures/column/column_roughness.png", 0);
+    albedoColumn = loadTexture2D("textures/cottage/cottage_diffuse.png", 1);
+    normalColumn = loadTexture2D("textures/cottage/cottage_normal.png", 0);
 
     // Lichter an aus
     glUniform1i(uSun_enabled, 1);
@@ -181,6 +181,7 @@ void init(AppContext *context)
     loadMesh("objects/column.obj", &column);
     loadMesh("objects/cube.obj", &cube);
     loadMesh("objects/gras.obj", &gras);
+    loadMesh("objects/cottage_blender.obj",&cottage);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -225,7 +226,7 @@ void draw(AppContext *context)
     translate(M, M, (GLfloat[]){0.0f, -0.01f, 0.0f});
     scale(M, M, (GLfloat[]){0.42f, 0.45f, 0.42f});
     setMaterialGrayPillar();
-    drawMeshWithModel(&column, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+    drawMeshWithModel(&cottage, V, P, M, MVLoc, MVPLoc, NormalMLoc);
 }
 
 int main(void)
