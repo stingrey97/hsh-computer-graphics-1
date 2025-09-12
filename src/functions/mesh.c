@@ -1,76 +1,106 @@
 #include "mesh.h"
+// Robust: akkumuliert T/B pro Vertex, dann orthogonalisiert & normalisiert
+void calculateTangente(const GLfloat* vertices, int vertexCount, GLfloat* tangenten_out) {
+    // Layout: [x y z u v nx ny nz] pro Vertex
+    const int stride = 8;
 
-void calculateTangente(const GLfloat* vertices, int vertexCount, GLfloat* tangenten) {
-    for (int i = 0; i < vertexCount; i += 3) {                  // Wir verarbeiten immer ein Dreieck auf einmal
-        const GLfloat* v0 = &vertices[(i+0)*8];                 // Zeiger auf Vertex 0 dieses Dreiecks
-        const GLfloat* v1 = &vertices[(i+1)*8];                 // Zeiger auf Vertex 1 dieses Dreiecks
-        const GLfloat* v2 = &vertices[(i+2)*8];                 // Zeiger auf Vertex 2 dieses Dreiecks
+    // Akkumulatoren
+    GLfloat* tanSum  = (GLfloat*)calloc(vertexCount * 3, sizeof(GLfloat));
+    GLfloat* bitSum  = (GLfloat*)calloc(vertexCount * 3, sizeof(GLfloat));
+
+    for (int i = 0; i < vertexCount; i += 3) {
+        const GLfloat* v0 = &vertices[(i+0)*stride];
+        const GLfloat* v1 = &vertices[(i+1)*stride];
+        const GLfloat* v2 = &vertices[(i+2)*stride];
 
         // Positionen
-        float p0[3] = { v0[0], v0[1], v0[2] };                   // p0 = (x,y,z) von Vertex 0
-        float p1[3] = { v1[0], v1[1], v1[2] };                   // p1 = (x,y,z) von Vertex 1
-        float p2[3] = { v2[0], v2[1], v2[2] };                   // p2 = (x,y,z) von Vertex 2
+        float p0x=v0[0], p0y=v0[1], p0z=v0[2];
+        float p1x=v1[0], p1y=v1[1], p1z=v1[2];
+        float p2x=v2[0], p2y=v2[1], p2z=v2[2];
 
         // UVs
-        float uv0[2] = { v0[3], v0[4] };                         // uv0 = (u,v) von Vertex 0
-        float uv1[2] = { v1[3], v1[4] };                         // uv1 = (u,v) von Vertex 1
-        float uv2[2] = { v2[3], v2[4] };                         // uv2 = (u,v) von Vertex 2
+        float u0=v0[3], v0u=v0[4];
+        float u1=v1[3], v1u=v1[4];
+        float u2=v2[3], v2u=v2[4];
 
-        // Kanten im Raum und im UV
-        float e1[3] = { p1[0]-p0[0], p1[1]-p0[1], p1[2]-p0[2] }; // e1 = p1 - p0 (erste Raumkante des Dreiecks)
-        float e2[3] = { p2[0]-p0[0], p2[1]-p0[1], p2[2]-p0[2] }; // e2 = p2 - p0 (zweite Raumkante des Dreiecks)
-        float du1 = uv1[0]-uv0[0], dv1 = uv1[1]-uv0[1];          // deltaUV1 = uv1 - uv0
-        float du2 = uv2[0]-uv0[0], dv2 = uv2[1]-uv0[1];          // deltaUV2 = uv2 - uv0
+        // Kanten
+        float e1x = p1x - p0x, e1y = p1y - p0y, e1z = p1z - p0z;
+        float e2x = p2x - p0x, e2y = p2y - p0y, e2z = p2z - p0z;
 
-        float denom = du1*dv2 - du2*dv1;                         // Determinante der 2x2 UV Matrix
-        if (fabsf(denom) < 1e-20f) denom = 1e-20f;               // Schutz bei degenerierten UVs (verhindert Division durch 0)
-        float f = 1.0f / denom;                                  // Invers der Determinante = Skalarfaktor für Lösung
+        float du1 = u1 - u0, dv1 = v1u - v0u;
+        float du2 = u2 - u0, dv2 = v2u - v0u;
 
-        // Lösung des linearen Gleichungssystems:
-        // e1 = T*du1 + B*dv1
-        // e2 = T*du2 + B*dv2
-        // ergibt die bekannten Formeln für T und B
-        float T[3] = {
-            f * ( dv2*e1[0] - dv1*e2[0] ),                       // Tangente x
-            f * ( dv2*e1[1] - dv1*e2[1] ),                       // Tangente y
-            f * ( dv2*e1[2] - dv1*e2[2] )                        // Tangente z
-        };
-        float B[3] = {
-            f * ( -du2*e1[0] + du1*e2[0] ),                      // Bitangente x
-            f * ( -du2*e1[1] + du1*e2[1] ),                      // Bitangente y
-            f * ( -du2*e1[2] + du1*e2[2] )                       // Bitangente z
-        };
-
-        // pro Vertex: Gram-Schmidt + Sign
-        for (int k = 0; k < 3; ++k) {                            // Für jedes der 3 Vertices die Dreieckstangente anpassen
-            const GLfloat* vk = &vertices[(i+k)*8];              // vk zeigt auf das aktuelle Vertex
-
-            float N[3] = { vk[5], vk[6], vk[7] };                // N aus deinem Array (nx,ny,nz) des Vertices
-            // Gram-Schmidt: T orthogonal zu N machen
-            float dotNT = N[0]*T[0] + N[1]*T[1] + N[2]*T[2];     // Projektion von T auf N
-            float Tg[3] = { T[0] - N[0]*dotNT,                   // Tg = T - proj_N(T)
-                           T[1] - N[1]*dotNT,
-                           T[2] - N[2]*dotNT };
-            float lenT = sqrtf(Tg[0]*Tg[0] + Tg[1]*Tg[1] + Tg[2]*Tg[2]);
-            if (lenT > 1e-10f) { Tg[0]/=lenT; Tg[1]/=lenT; Tg[2]/=lenT; } // Normieren der Tangente
-
-            // Handedness Sign berechnen: stimmt unsere B Richtung mit cross(N, T) überein
-            float NxT[3] = {                                         // NxT = N × T_g
-                N[1]*Tg[2] - N[2]*Tg[1],
-                N[2]*Tg[0] - N[0]*Tg[2],
-                N[0]*Tg[1] - N[1]*Tg[0]
-            };
-            float dot = NxT[0]*B[0] + NxT[1]*B[1] + NxT[2]*B[2];     // Vergleich mit geometrischer B
-            float sign = (dot < 0.0f) ? -1.0f : 1.0f;                // Negativ bedeutet gespiegelt, daher Vorzeichen
-
-            GLfloat* out = &tangenten[(i+k)*4];                      // Ausgabeschlitz für dieses Vertex
-            out[0] = Tg[0];                                          // tx
-            out[1] = Tg[1];                                          // ty
-            out[2] = Tg[2];                                          // tz
-            out[3] = sign;                                           // tw = handedness Sign
+        float denom = du1*dv2 - du2*dv1;
+        if (fabsf(denom) < 1e-12f) {
+            // degenerierte UVs: dieses Dreieck trägt nicht sinnvoll zu T/B bei
+            continue;
         }
+        float f = 1.0f / denom;
+
+        // Dreiecks-T/B
+        float Tx = f * ( dv2*e1x - dv1*e2x );
+        float Ty = f * ( dv2*e1y - dv1*e2y );
+        float Tz = f * ( dv2*e1z - dv1*e2z );
+
+        float Bx = f * ( -du2*e1x + du1*e2x );
+        float By = f * ( -du2*e1y + du1*e2y );
+        float Bz = f * ( -du2*e1z + du1*e2z );
+
+        // Auf die drei Vertex-Akkus addieren
+        int i0 = (i+0)*3, i1 = (i+1)*3, i2 = (i+2)*3;
+        tanSum[i0+0]+=Tx; tanSum[i0+1]+=Ty; tanSum[i0+2]+=Tz;
+        tanSum[i1+0]+=Tx; tanSum[i1+1]+=Ty; tanSum[i1+2]+=Tz;
+        tanSum[i2+0]+=Tx; tanSum[i2+1]+=Ty; tanSum[i2+2]+=Tz;
+
+        bitSum[i0+0]+=Bx; bitSum[i0+1]+=By; bitSum[i0+2]+=Bz;
+        bitSum[i1+0]+=Bx; bitSum[i1+1]+=By; bitSum[i1+2]+=Bz;
+        bitSum[i2+0]+=Bx; bitSum[i2+1]+=By; bitSum[i2+2]+=Bz;
     }
+
+    // Finalisierung je Vertex: Gram-Schmidt, Handedness, Fallback wenn nötig
+    for (int v = 0; v < vertexCount; ++v) {
+        const GLfloat* V = &vertices[v*stride];
+        float Nx = V[5], Ny = V[6], Nz = V[7];
+
+        // Tangenten-Summe orthogonalisieren gegen N
+        float Tx = tanSum[v*3+0], Ty = tanSum[v*3+1], Tz = tanSum[v*3+2];
+
+        // Fallback, falls zu klein (z. B. wegen Degeneraten): baue T aus N
+        float lenT2 = Tx*Tx + Ty*Ty + Tz*Tz;
+        if (lenT2 < 1e-20f) {
+            // wähle eine Hilfsachse, die nicht parallel zu N ist
+            float ax = (fabsf(Nx) < 0.9f) ? 1.0f : 0.0f;
+            float ay = (fabsf(Nx) < 0.9f) ? 0.0f : 1.0f;
+            float az = 0.0f;
+            // T = normalize( cross( N, Hilfsachse ) )
+            float cx = Ny*az - Nz*ay;
+            float cy = Nz*ax - Nx*az;
+            float cz = Nx*ay - Ny*ax;
+            Tx=cx; Ty=cy; Tz=cz;
+        }
+
+        // Gram-Schmidt
+        float dotNT = Nx*Tx + Ny*Ty + Nz*Tz;
+        Tx -= Nx*dotNT; Ty -= Ny*dotNT; Tz -= Nz*dotNT;
+        float lenT = sqrtf(Tx*Tx + Ty*Ty + Tz*Tz);
+        if (lenT > 1e-20f) { Tx/=lenT; Ty/=lenT; Tz/=lenT; } else { Tx=1; Ty=0; Tz=0; } // letzter Fallback
+
+        // Handedness aus aufsummierter Bitangente
+        float Bx = bitSum[v*3+0], By = bitSum[v*3+1], Bz = bitSum[v*3+2];
+        // sign = sign( dot( cross(N,T), Bsum ) )
+        float cx = Ny*Tz - Nz*Ty;
+        float cy = Nz*Tx - Nx*Tz;
+        float cz = Nx*Ty - Ny*Tx;
+        float sign = (cx*Bx + cy*By + cz*Bz) < 0.0f ? -1.0f : 1.0f;
+
+        GLfloat* out = &tangenten_out[v*4];
+        out[0] = Tx; out[1] = Ty; out[2] = Tz; out[3] = sign;
+    }
+
+    free(tanSum);
+    free(bitSum);
 }
+
 
 void loadMesh(const char* filename, Mesh *out){
     int werte[4];

@@ -70,7 +70,7 @@ void main(void)
 
     vec3 albedo = texture(uAlbedo, TexCoord).rgb;
 
-    vec3 n_ts = texture(uNormalMap, TexCoord).rgb * 2.0 - 1.0;
+    vec3 n_ts = texture(uNormalMap, TexCoord).rgb * 2.0 - 1.0;        
     vec3 normalMapVS = normalize(TBN * n_ts);
     vec3 normal = normalMapVS;
 
@@ -157,5 +157,5 @@ void main(void)
         col += ambient + diffuse + specular;
     }
 
-    FragColor = vec4(col,alpha);
+    FragColor = vec4(col, alpha);
 }

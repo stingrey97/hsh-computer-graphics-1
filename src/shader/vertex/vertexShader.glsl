@@ -24,7 +24,10 @@ void main(void)
     vec3 Normal   = normalize(NormalM * vNormal);
     TexCoord = vTexCoord;
 
-    vec3 T = normalize(NormalM * vTangente.xyz);
+    // T mit der linearen MV in den View Space
+    vec3 T = mat3(MV) * vTangente.xyz;
+    // Gram-Schmidt: T orthogonal zu N machen
+    T = normalize(T - Normal * dot(Normal, T));
     vec3 B = normalize(cross(Normal, T) * vTangente.w);
 
     TBN = mat3(T, B, Normal);
