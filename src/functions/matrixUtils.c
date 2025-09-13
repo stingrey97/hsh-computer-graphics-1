@@ -114,7 +114,7 @@ void cross3f(GLfloat *out, const GLfloat *v1, const GLfloat *v2)
 void printVecN(const GLfloat *vec, const int n)
 {
     for (int i = 0; i < n; i++)
-        printf("%f ", vec[i]);
+        printf("%.3f ", vec[i]);
     printf("\n");
 }
 
@@ -122,15 +122,55 @@ void printVec3(const GLfloat *vec) { printVecN(vec, 3); }
 
 void printVec4(const GLfloat *vec) { printVecN(vec, 4); }
 
-void printMat4(const GLfloat *mat)
+void printMatN(const GLfloat *mat, const int n)
 {
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            printf("%f ", mat[j * 4 + i]);
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            printf("%.3f ", mat[j * n + i]);
         }
         printf("\n");
     }
 }
+
+void printMat4(const GLfloat *mat) { return printMatN(mat, 4); }
+
+void printMat3(const GLfloat *mat) { return printMatN(mat, 3);}
+
+int inRange(const GLfloat a, const GLfloat b) {
+    if((a + EPS >= b && a < b) || (a - EPS <= b && a > b)) return 1;
+    return 0;
+}
+
+int compareVecN(const GLfloat *vecA, const GLfloat *vecB, const int n) {
+    for (int i = 0; i < n; i++)
+    {
+        if(vecA[i] != vecB[i]) {
+            if(inRange(vecA[i], vecB[i]) == 0) { return 0; }
+        }
+    }
+    return 1;
+}
+
+int compareVec3(const GLfloat *vecA, const GLfloat *vecB) { return compareVecN(vecA, vecB, 3); }
+
+int compareVec4(const GLfloat *vecA, const GLfloat *vecB) { return compareVecN(vecA, vecB, 4); }
+
+int compareMatN(const GLfloat *matA, const GLfloat *matB, const int n) {
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if(matA[j * n + i] != matB[j * n + i]) {
+                if(inRange(matA[j * n + i], matB[j * n + i]) == 0) { return 0; }
+            }
+        }
+    }
+    return 1;
+}
+
+int compareMat4(const GLfloat *matA, const GLfloat *matB) { return compareMatN(matA, matB, 4); }
+
+int compareMat3(const GLfloat *matA, const GLfloat *matB) { return compareMatN(matA, matB, 3); }
 
 void mat3_from_mat4(GLfloat out[9], const GLfloat M[16]) {
     out[0]=M[0];  out[1]=M[1];  out[2]=M[2];  

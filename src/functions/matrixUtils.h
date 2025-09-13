@@ -89,6 +89,31 @@ extern void printVec4(const GLfloat *vec);
 extern void printMat4(const GLfloat *mat);
 
 /**
+ * Gibt eine 3x3 Matrix auf der Konsole aus
+ */
+extern void printMat3(const GLfloat *mat);
+
+/**
+ * Vergleiche 2 Vektoren der Länge 3 mit einander. Liefert 1 wenn sie identisch sind
+ */
+extern int compareVec3(const GLfloat *vecA, const GLfloat *vecB);
+
+/**
+ * Vergleiche 2 Vektoren der Länge 4 mit einander. Liefert 1 wenn sie identisch sind
+ */
+extern int compareVec4(const GLfloat *vecA, const GLfloat *vecB);
+
+/**
+ * Vergleiche 2 4x4 Matrizen mit einander. Liefert 1 wenn sie identisch sind
+ */
+extern int compareMat4(const GLfloat *matA, const GLfloat *matB);
+
+/**
+ * Vergleiche 2 3x3 Matrizen mit einander. Liefert 1 wenn sie identisch sind
+ */
+extern int compareMat3(const GLfloat *matA, const GLfloat *matB);
+
+/**
  * Erstellt eine 3x3 Matrix aus einer 4x4 Matrix (oberer linker Block)
  */
 extern void mat3_from_mat4(GLfloat out[9], const GLfloat M[16]);
