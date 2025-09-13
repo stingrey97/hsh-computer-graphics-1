@@ -43,6 +43,9 @@ GLint uSpot_enabled, uSpot_position, uSpot_direction, uSpot_innerCone, uSpot_out
 // Nebel (struct fog nebel)
 GLint uFogColor, uFogDensity, uFogEnabled;
 
+// Environment mapping
+GLint uEnvMap, uUseEnvMap, uIOR, uEnvStrength, uViewRotLoc;
+
 // Uniform Standorte
 GLint MVLoc, MVPLoc, NormalMLoc;
 
@@ -64,7 +67,7 @@ void setMaterialPolishedGold()
     glUniform4f(uMat_ambient, 0.25f, 0.22f, 0.06f, 1);
     glUniform4f(uMat_diffuse, 0.35f, 0.31f, 0.09f, 1); // alpha=1 (opak)
     glUniform4f(uMat_specular, 0.80f, 0.72f, 0.21f, 1);
-    glUniform1f(uMat_shininess, 83.2f);
+    glUniform1f(uMat_shininess, 150.2f);
 }
 
 void setMaterialGrayPillar()
@@ -221,6 +224,25 @@ void init(AppContext *context)
     initSkybox(context);
     glUseProgram(context->skyboxProgramID);
     glUniform1i(glGetUniformLocation(context->skyboxProgramID, "skybox"), 0);
+
+    // Env map binding for main program
+    glUseProgram(context->programID);
+    uEnvMap = glGetUniformLocation(context->programID, "uEnvMap");
+    uUseEnvMap = glGetUniformLocation(context->programID, "uUseEnvMap");
+    uIOR = glGetUniformLocation(context->programID, "uIOR");
+    uEnvStrength = glGetUniformLocation(context->programID, "uEnvStrength");
+    uViewRotLoc = glGetUniformLocation(context->programID, "uViewRot");
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, context->skyboxTexture);
+    glUniform1i(uEnvMap, 1);
+
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+    // defaults
+    glUniform1f(uIOR, 1.5f);
+    glUniform1f(uEnvStrength, 0.85f);
+    glUniform1i(uUseEnvMap, 0);
 }
 
 void draw(AppContext *context)
@@ -233,6 +255,15 @@ void draw(AppContext *context)
     GLfloat P[16];
     camera(V, P, context);
 
+    // viewMatrix ist deine 4x4-View-Matrix (column-major, OpenGL-konform)
+    GLfloat viewRot[9] = {
+        V[0], V[1], V[2],
+        V[4], V[5], V[6],
+        V[8], V[9], V[10]};
+
+    // Achtung: Das sind die oberen linken 3x3-Elemente ohne Translation.
+    glUniformMatrix3fv(uViewRotLoc, 1, GL_FALSE, viewRot);
+
     lichtSchalter(uSun_enabled, uLamp_enabled, uSpot_enabled, context->window, &status);
     nebelSchalter(uFogEnabled, context->window, &status);
 
@@ -244,6 +275,10 @@ void draw(AppContext *context)
 
     // Punktlicht-Position JEDES Frame in View-Space updaten
     setPointLight(uLamp_position, V, 2.0f, 2.0f, 5.0f);
+
+    // Make everything reflecting?
+    glUniform1i(uUseEnvMap, 1);
+
 
     // 1) Graue Säule (gestreckter Cube)
     GLfloat M[16];
@@ -336,7 +371,9 @@ void draw(AppContext *context)
     translate(M, M, (GLfloat[]){0.0f, 1.42f, 0.0f});
     scale(M, M, (GLfloat[]){0.24f, 0.24f, 0.24f});
     setMaterialGlass(0.18f);
+    glUniform1i(uUseEnvMap, 1);
     drawtransparentMeshWithModel(&cube, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+    glUniform1i(uUseEnvMap, 0);
 
     // Skybox
     glCullFace(GL_FRONT);
@@ -355,7 +392,7 @@ void draw(AppContext *context)
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
     glCullFace(GL_BACK);
-    
+
     // Switch back to the normal depth functionx
     glDepthFunc(GL_LESS);
 }

@@ -43,7 +43,7 @@ void initSkybox(AppContext *context)
             3, 7, 6,
             6, 2, 3};
 
-#ifdef SKYBOX_DAYTIME
+#ifdef SKYBOX_DAY
     const char *facesCubemap[6] =
         {
             "textures/skybox/daytime/px.png",
