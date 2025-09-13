@@ -19,10 +19,11 @@ typedef struct
     GLuint skyboxVAO;
     GLuint skyboxTexture;
 
-    // Kamera
-    GLfloat eye[3];
-    GLfloat look[3];
-    GLfloat up[3];
+    // Camera
+    GLfloat eye[3], look[3], up[3];
+
+    // Material
+    GLint uMat_emission, uMat_ambient, uMat_diffuse, uMat_specular, uMat_shininess;
 
 } AppContext;
 

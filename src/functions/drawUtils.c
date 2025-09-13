@@ -9,7 +9,7 @@
 
 // Own libs
 #include "Mesh.h"
-#include "MatrixUtils.h"
+#include "MathUtils.h"
 
 void drawMeshWithModel(const Mesh *m,
                        const float viewMatrix[16], const float projMatrix[16], const float model[16],
@@ -30,8 +30,8 @@ void drawMeshWithModel(const Mesh *m,
 }
 
 void drawtransparentMeshWithModel(const Mesh *m,
-                                         const float viewMatrix[16], const float projMatrix[16], const float model[16],
-                                         GLint MVLoc, GLint MVPLoc, GLint NormalMLoc)
+                                  const float viewMatrix[16], const float projMatrix[16], const float model[16],
+                                  GLint MVLoc, GLint MVPLoc, GLint NormalMLoc)
 {
     // Matrizen vorbereiten (einmal) – wird in beiden Pässen benutzt
     GLfloat MV[16], MVP[16], NormalM[9];

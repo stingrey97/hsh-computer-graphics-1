@@ -9,7 +9,8 @@
 #include <GL/glew.h>
 
 // Own libs
-#include "MatrixUtils.h"
+#include "Constants.h"
+#include "MathUtils.h"
 
 void initializeDirectionalLight(GLint uSun_ambient, GLint uSun_diffuse, GLint uSun_specular)
 {

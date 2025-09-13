@@ -13,7 +13,7 @@
 // Own libs
 #include "Constants.h"
 #include "AppContext.h"
-#include "MatrixUtils.h"
+#include "MathUtils.h"
 
 static double lastTime;
 

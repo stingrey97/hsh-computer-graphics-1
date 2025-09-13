@@ -1,5 +1,5 @@
 // Self
-#include "MatrixUtils.h"
+#include "MathUtils.h"
 
 // Standard libs
 #include <stdlib.h>
