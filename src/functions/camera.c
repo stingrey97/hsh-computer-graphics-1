@@ -11,7 +11,8 @@
 
 #define MAX_PITCH 1.55334306f
 #define FOV 45.0f
-#define KEY_SPEED glfwGetKey(context->window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS ? 5.0f : 3.0f
+#define KEY_SPEED 3.0f
+#define SPRINT_MULTIPLY 2.0f
 #define MOUSE_SPEED 0.05f
 #define START_HORIZONTAL_ANGLE 4.72f
 #define START_VERTICAL_ANGLE 0.0f
@@ -95,32 +96,34 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
         0,
         cos(horizontalAngle - 3.14f / 2.0f)};
 
+    GLfloat sprintModifier = glfwGetKey(context->window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS ? SPRINT_MULTIPLY : 1.f;
+
     // Move forward
     if (glfwGetKey(context->window, GLFW_KEY_UP) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_W) == GLFW_PRESS)
     {
         GLfloat dir[3];
-        multiply3f(dir, context->look, deltaTime * KEY_SPEED);
+        multiply3f(dir, context->look, deltaTime * KEY_SPEED * sprintModifier);
         plus3f(context->eye, context->eye, dir);
     }
     // Move backward
     if (glfwGetKey(context->window, GLFW_KEY_DOWN) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_S) == GLFW_PRESS)
     {
         GLfloat dir[3];
-        multiply3f(dir, context->look, deltaTime * KEY_SPEED);
+        multiply3f(dir, context->look, deltaTime * KEY_SPEED * sprintModifier);
         minus3f(context->eye, context->eye, dir);
     }
     // Strafe right
     if (glfwGetKey(context->window, GLFW_KEY_RIGHT) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_D) == GLFW_PRESS)
     {
         GLfloat ri[3];
-        multiply3f(ri, right, deltaTime * KEY_SPEED);
+        multiply3f(ri, right, deltaTime * KEY_SPEED * sprintModifier);
         plus3f(context->eye, context->eye, ri);
     }
     // Strafe left
     if (glfwGetKey(context->window, GLFW_KEY_LEFT) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_A) == GLFW_PRESS)
     {
         GLfloat ri[3];
-        multiply3f(ri, right, deltaTime * KEY_SPEED);
+        multiply3f(ri, right, deltaTime * KEY_SPEED * sprintModifier);
         minus3f(context->eye, context->eye, ri);
     }
 
