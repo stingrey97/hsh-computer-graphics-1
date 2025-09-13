@@ -395,7 +395,7 @@ int main(void)
 
     init(&context);
 
-    testFunktion();
+    testeFunktionen();
 
     while (!glfwWindowShouldClose(context.window))
     {
