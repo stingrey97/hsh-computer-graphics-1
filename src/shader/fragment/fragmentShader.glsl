@@ -93,7 +93,7 @@ void main(void)
 
     vec3 view = normalize(-Position);
     vec3 col   = material.emission.rgb;
-    float alpha = material.diffuse.a;
+    float alpha = texture(uAlbedo, TexCoord).a; //Durchsichtig durch Textur sonst material.diffuse.a
 
     vec3 kd = albedo;
     vec3 ka = albedo;

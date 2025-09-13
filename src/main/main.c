@@ -41,10 +41,14 @@ GLint uLamp_enabled, uLamp_position, uLamp_ambient, uLamp_diffuse, uLamp_specula
 GLint uSpot_enabled, uSpot_position, uSpot_direction, uSpot_innerCone, uSpot_outerCone, uSpot_ambient, uSpot_diffuse, uSpot_specular, uSpot_linear, uSpot_quadratic;
 
 // Texture uniform
-GLint albedoLoc, normalLoc, roughnessLoc;
+GLint albedoLoc, normalLoc, roughnessLoc, uvScale;
 
-// Column textures
-GLuint albedoColumn, normalColumn, roughnessColumn;
+// textures
+GLuint albedoCottage, normalCottage, roughnessCottage;
+GLuint albedoColumn;
+GLuint albedoGras, normalGras, roughnessGras;
+GLuint albedoBaum1und2, albedoBaum3, normalBaum, roughBaum;
+GLuint albedoGlas, normalGlas, roughGlas;
 
 // Nebel (struct fog nebel)
 GLint uFogColor, uFogDensity, uFogEnabled;
@@ -53,7 +57,7 @@ GLint uFogColor, uFogDensity, uFogEnabled;
 GLint MVLoc, MVPLoc, NormalMLoc;
 
 // Mesh
-Mesh cube, teapot, column, gras, cottage, tree1, tree2, tree3, slenderman;
+Mesh cube, teapot, column, gras, cottage, baumstamm1, baumstamm2, baumstamm3, slenderman;
 
 // Licht Status
 Status status = {1, 1, 1};
@@ -189,6 +193,7 @@ void init(AppContext *context)
     albedoLoc = glGetUniformLocation(context->programID, "uAlbedo");
     normalLoc = glGetUniformLocation(context->programID, "uNormalMap");
     roughnessLoc = glGetUniformLocation(context->programID, "uRoughness");
+    uvScale = glGetUniformLocation(context->programID, "uvScale");
 
     // Texturkanäle
     glUniform1i(albedoLoc, 0);
@@ -196,8 +201,24 @@ void init(AppContext *context)
     glUniform1i(roughnessLoc, 2);
 
     // Texturen laden
-    albedoColumn = loadTexture2D("textures/cottage/cottage_diffuse.png", 1);
-    normalColumn = loadTexture2D("textures/cottage/cottage_normal.png", 0);
+    // Cottage
+    albedoCottage = loadTexture2D("textures/cottage/cottage_diffuse.png", 1);
+    normalCottage = loadTexture2D("textures/cottage/cottage_normal.png", 0);
+    // gras
+    albedoGras = loadTexture2D("textures/gras/grass1-albedo3.png", 1);
+    normalGras = loadTexture2D("textures/gras/grass1-normal1-ogl.png", 0);
+    roughnessGras = loadTexture2D("textures/gras/grass1-rough.png", 0);
+    // Bäume
+    albedoBaum1und2 = loadTexture2D("textures/trees/tree1/BarkDecidious0143_5_S.jpg", 1);
+    albedoBaum3 = loadTexture2D("textures/trees/tree3/BarkDecidious0194_7_S.jpg", 1);
+    normalBaum = loadTexture2D("textures/trees/tree1/tree_bark_normal_ogl.png", 0);
+    roughBaum = loadTexture2D("textures/trees/tree1/tree_bark_roughness.png", 0);
+    // Glas
+    albedoGlas = loadTexture2D("textures/glas/glass_albedo_red_a18.png", 1);
+    normalGlas = loadTexture2D("textures/glas/glass_normal_flat_ogl.png", 0);
+    roughGlas = loadTexture2D("textures/glas/glass_roughness_glossy_012.png", 0);
+    // Coulmn
+    albedoColumn = loadTexture2D("textures/column/Column_Albedo_fixed.png", 1);
 
     // Lichter an aus
     glUniform1i(uSun_enabled, 1);
@@ -224,10 +245,10 @@ void init(AppContext *context)
     loadMesh("objects/cube.obj", &cube);
     loadMesh("objects/gras.obj", &gras);
     loadMesh("objects/cottage_blender.obj", &cottage);
-    loadMesh("objects/Tree1.obj", &tree1);
-    loadMesh("objects/Tree2.obj", &tree2);
-    loadMesh("objects/Tree3.obj", &tree3);
     loadMesh("objects/slenderman.obj", &slenderman);
+    loadMesh("objects/tree/tree1/Baumstamm1.obj", &baumstamm1);
+    loadMesh("objects/tree/tree2/Baumstamm2.obj", &baumstamm2);
+    loadMesh("objects/tree/tree3/Baumstamm3.obj", &baumstamm3);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -265,35 +286,15 @@ void draw(AppContext *context)
     // Punktlicht-Position JEDES Frame in View-Space updaten
     setPointLight(uLamp_position, V, 2.0f, 2.0f, 5.0f);
 
-    // 1) Graue Säule (gestreckter Cube)
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, albedoColumn);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, normalColumn);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, roughnessColumn);
     GLfloat M[16];
-    identity(M);
-    translate(M, M, (GLfloat[]){0.0f, -0.01f, 0.0f});
-    scale(M, M, (GLfloat[]){0.42f, 0.45f, 0.42f});
-    setMaterialGrayPillar();
-    drawMeshWithModel(&column, V, P, M, MVLoc, MVPLoc, NormalMLoc);
-
-    // 2) Golderner Teapot
-    identity(M);
-    translate(M, M, (GLfloat[]){0.0f, 1.6f, 0.0f});
-    scale(M, M, (GLfloat[]){0.14f, 0.14f, 0.14f});
-    setMaterialPolishedGold();
-    drawMeshWithModel(&teapot, V, P, M, MVLoc, MVPLoc, NormalMLoc);
-
-    // 3) Gras
-    identity(M);
-    translate(M, M, (GLfloat[]){0.0f, -0.01f, 0.0f});
-    scale(M, M, (GLfloat[]){0.42f, 0.45f, 0.42f});
-    setMaterialGrass();
-    drawMeshWithModel(&gras, V, P, M, MVLoc, MVPLoc, NormalMLoc);
-
-    // 4) Cottage
+    // Cottage
+    glUniform2f(uvScale, 1.0f, 1.0f);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, albedoCottage);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normalCottage);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, roughnessCottage);
     identity(M);
     translate(M, M, (GLfloat[]){25.0f, 0.0f, -15.0f});
     rotateY(M, M, 20);
@@ -301,7 +302,35 @@ void draw(AppContext *context)
     setMaterialWood();
     drawMeshWithModel(&cottage, V, P, M, MVLoc, MVPLoc, NormalMLoc);
 
-    // 5) Slenderman
+    // Gras
+    glUniform2f(uvScale, 50.0f, 50.0f);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, albedoGras);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normalGras);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, roughnessGras);
+    identity(M);
+    translate(M, M, (GLfloat[]){0.0f, -0.01f, 0.0f});
+    scale(M, M, (GLfloat[]){0.42f, 0.45f, 0.42f});
+    setMaterialGrass();
+    drawMeshWithModel(&gras, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+
+    // Graue Säule
+    identity(M);
+    translate(M, M, (GLfloat[]){0.0f, -0.01f, 0.0f});
+    scale(M, M, (GLfloat[]){0.42f, 0.45f, 0.42f});
+    setMaterialGrayPillar();
+    drawMeshWithModel(&column, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+
+    // Golderner Teapot
+    identity(M);
+    translate(M, M, (GLfloat[]){0.0f, 1.6f, 0.0f});
+    scale(M, M, (GLfloat[]){0.14f, 0.14f, 0.14f});
+    setMaterialPolishedGold();
+    drawMeshWithModel(&teapot, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+
+    //  Slenderman
     identity(M);
     translate(M, M, (GLfloat[]){1.4f, 0.0f, -3.2f});
     rotateY(M, M, 180);
@@ -309,60 +338,48 @@ void draw(AppContext *context)
     setMaterialSlenderman();
     drawMeshWithModel(&slenderman, V, P, M, MVLoc, MVPLoc, NormalMLoc);
 
-    // 6) Bäume / kleiner Wald (einfacher Ring, wechselnde Modelle)
-    {
-        const int count = 50;     // Anzahl Bäume
-        const float cx = 0.8f;    // Mittelpunkt X (z. B. Nähe Cottage)
-        const float cz = -1.4f;   // Mittelpunkt Z
-        const float rMin = 10.0f; // innerer Radius (freie Fläche)
-        const float rMax = 50.0f; // äußerer Radius (Waldgröße)
-
-        for (int i = 0; i < count; ++i)
-        {
-            // Winkel & Radius (einfach)
-            float t = i * 0.7f;                 // Schrittwinkel
-            float u = (float)i / (float)count;  // 0..1
-            float r = rMin + (rMax - rMin) * u; // wächst nach außen
-
-            // Position + kleine Offsets (gegen perfekte Ordnung)
-            float x = cx + r * cosf(t);
-            float z = cz + r * sinf(t);
-            if (i % 2 == 0)
-                x += 0.20f;
-            if (i % 3 == 0)
-                z -= 0.15f;
-
-            // Größe & Rotation leicht variieren
-            float s = 0.40f + 0.15f * ((i % 4) / 3.0f); // ~0.40..0.55
-            float rotDeg = 10.0f * (i % 18);            // 0..170° in 10°-Schritten
-            // Falls deine rotateY RADIAN erwartet, nimm:
-            // float rotRad = rotDeg * (float)M_PI / 180.0f;
-
-            // Variante wählen: 0 -> tree1, 1 -> tree2, 2 -> tree3
-            Mesh *tree = &tree1;
-            if (i % 3 == 1)
-                tree = &tree2;
-            else if (i % 3 == 2)
-                tree = &tree3;
-
-            // Model-Matrix und Draw
-            GLfloat M[16];
-            identity(M);
-            translate(M, M, (GLfloat[]){x, 0.0f, z});
-            rotateY(M, M, rotDeg); // oder rotateY(M,M,rotRad) s.o.
-            scale(M, M, (GLfloat[]){s, s, s});
-
-            setMaterialTree();
-            drawMeshWithModel(tree, V, P, M, MVLoc, MVPLoc, NormalMLoc);
-        }
-    }
-
-    // 7) Glaswürfel
+    // Baum 1
+    glUniform2f(uvScale, 1500.0f, 1500.0f);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, albedoBaum1und2);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normalBaum);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, roughBaum);
     identity(M);
-    translate(M, M, (GLfloat[]){0.0f, 1.42f, 0.0f});
-    scale(M, M, (GLfloat[]){0.24f, 0.24f, 0.24f});
-    setMaterialGlass(0.18f);
-    drawtransparentMeshWithModel(&cube, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+    translate(M, M, (GLfloat[]){-4.0f, 0.0f, -2.5f}); // Position
+    rotateY(M, M, 30.0f);                             // Drehung
+    scale(M, M, (GLfloat[]){0.9f, 0.9f, 0.9f});
+    setMaterialWood();
+    drawMeshWithModel(&baumstamm3, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+
+    glUniform2f(uvScale, 1500.0f, 1500.0f);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, albedoBaum1und2);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normalBaum);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, roughBaum);
+    identity(M);
+    translate(M, M, (GLfloat[]){14.0f, 0.0f, 12.5f}); // Position
+    rotateY(M, M, 30.0f);                             // Drehung
+    scale(M, M, (GLfloat[]){0.9f, 0.9f, 0.9f});
+    setMaterialWood();
+    drawMeshWithModel(&baumstamm3, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+
+    glUniform2f(uvScale, 1500.0f, 1500.0f);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, albedoBaum3);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normalBaum);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, roughBaum);
+    identity(M);
+    translate(M, M, (GLfloat[]){-14.0f, 0.0f, -12.5f}); // Position
+    rotateY(M, M, 30.0f);                               // Drehung
+    scale(M, M, (GLfloat[]){0.9f, 0.9f, 0.9f});
+    setMaterialWood();
+    drawMeshWithModel(&baumstamm3, V, P, M, MVLoc, MVPLoc, NormalMLoc);
 
     // Skybox
     glCullFace(GL_FRONT);
@@ -381,9 +398,24 @@ void draw(AppContext *context)
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
     glCullFace(GL_BACK);
-    
+
     // Switch back to the normal depth functionx
     glDepthFunc(GL_LESS);
+
+    // Glaswürfel
+    glUseProgram(context->programID);
+    glUniform2f(uvScale, 1.0f, 1.0f);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, albedoGlas);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normalGlas);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, roughGlas);
+    identity(M);
+    translate(M, M, (GLfloat[]){0.0f, 1.42f, 0.0f});
+    scale(M, M, (GLfloat[]){0.24f, 0.24f, 0.24f});
+    setMaterialGlass(0.18f);
+    drawtransparentMeshWithModel(&cube, V, P, M, MVLoc, MVPLoc, NormalMLoc);
 }
 
 int main(void)
