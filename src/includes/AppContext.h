@@ -1,8 +1,8 @@
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-
 #ifndef APP_CONTEXT_H
 #define APP_CONTEXT_H
+
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
 typedef struct
 {

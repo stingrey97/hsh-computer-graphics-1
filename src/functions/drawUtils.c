@@ -1,4 +1,4 @@
-// Selfs
+// Self
 #include "DrawUtils.h"
 
 // Standard libs

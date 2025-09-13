@@ -1,17 +1,7 @@
-#include <GL/glew.h>
-
 #ifndef MATRIX_UTILS_H
 #define MATRIX_UTILS_H
 
-/**
- * Fehlerkonstante für Werte nahe Null.
- */
-#define EPS 1e-6f
-
-/**
- * PI, wenn kein M_PI definiert ist
- */
-#define PI 3.14159265358979323846
+#include <GL/glew.h>
 
 /**
  * Multipliziert zwei 4x4 Matrizen

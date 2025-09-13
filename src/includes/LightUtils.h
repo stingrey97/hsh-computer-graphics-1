@@ -1,7 +1,7 @@
-#include <GL/glew.h>
-
 #ifndef LIGHTUTILS_H
 #define LIGHTUTILS_H
+
+#include <GL/glew.h>
 
 extern void initializeDirectionalLight(GLint uSun_ambient, GLint uSun_diffuse, GLint uSun_specular);
 extern void initializePointLight(GLint uLamp_ambient, GLint uLamp_diffuse, GLint uLamp_specular, GLint uLamp_linear, GLint uLamp_quadratic);

@@ -11,6 +11,7 @@
 #include <GL/glew.h>
 
 // Own libs
+#include "Constants.h"
 #include "AppContext.h"
 
 int isValidVector3f(const GLfloat vec[3])

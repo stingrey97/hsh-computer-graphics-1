@@ -10,6 +10,9 @@
 // OpenGL
 #include <GL/glew.h>
 
+// Own libs
+#include "Constants.h"
+
 float deg2radf(float deg)
 {
     return (float)PI * deg / 180.0f;

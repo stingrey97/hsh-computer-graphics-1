@@ -13,6 +13,7 @@
 #include "includes/ImageLoader.h"
 
 // Own libs
+#include "Constants.h"
 #include "AppContext.h"
 #include "MatrixUtils.h"
 #include "ShaderLoader.h"
@@ -23,11 +24,6 @@
 #include "Experiments.h"
 #include "FogUtils.h"
 #include "Skybox.h"
-
-// Constants
-#define INIT_WINDOW_TITLE "OpenGL Program"
-#define INIT_WINDOW_WIDTH 1024
-#define INIT_WINDOW_HEIGHT 768
 
 // Material (struct Material material)
 GLint uMat_emission, uMat_ambient, uMat_diffuse, uMat_specular, uMat_shininess;

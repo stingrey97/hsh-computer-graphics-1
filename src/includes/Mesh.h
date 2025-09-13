@@ -1,7 +1,7 @@
-#include <GL/glew.h>
-
 #ifndef MESH_H
 #define MESH_H
+
+#include <GL/glew.h>
 
 typedef struct
 {

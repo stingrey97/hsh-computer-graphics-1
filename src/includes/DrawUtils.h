@@ -1,9 +1,9 @@
+#ifndef DRAWUTILS_H
+#define DRAWUTILS_H
+
 #include <GL/glew.h>
 
 #include "Mesh.h"
-
-#ifndef DRAWUTILS_H
-#define DRAWUTILS_H
 
 extern void drawMeshWithModel(const Mesh *m,
                               const float viewMatrix[16],

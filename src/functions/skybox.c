@@ -5,11 +5,10 @@
 #include <GL/glew.h>
 
 // Own libs
+#include "Constants.h"
 #include "AppContext.h"
 #include "TextureLoader.h"
 #include "ShaderLoader.h"
-
-#define SKYBOX_NIGHT // SKYBOX_DAY // SKYBOX_NIGHT // SKYBOX_MYSTIC
 
 void initSkybox(AppContext *context)
 {
