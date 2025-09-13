@@ -141,6 +141,15 @@ int inRange(const GLfloat a, const GLfloat b) {
     return 0;
 }
 
+int compareFloats(const GLfloat *a, const GLfloat *b) {
+    if(*a != *b) {
+        if(inRange(*a, *b) == 0) { 
+            return 0; 
+        }
+    }
+    return 1;
+}
+
 int compareVecN(const GLfloat *vecA, const GLfloat *vecB, const int n) {
     for (int i = 0; i < n; i++)
     {

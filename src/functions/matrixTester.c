@@ -21,18 +21,6 @@ void testCompare(const float *a, const float *b, int (*compare)(const float* , c
     }
 }
 
-void compareFloats(float a, float b) {
-    if(a == b) {
-        printf("\n");
-        printf("\033[1;32mTest erfolgreich\033[0m\n");
-        erfolgreichCounter++;
-    } else {
-        printf("\n");
-        printf("\033[1;31mTEST FEHLGESCHLAGEN!\033[0m\n");
-        fehlgeschlagenCounter++;
-    }
-}
-
 void printLine() {
     printf("\n");
     printf("——————————————————————————————————————\n");
@@ -148,7 +136,7 @@ void testeFunktionen(void){
     printf("Länge von Vektor B: %.3f\n", lenVecB);
     float laenge = 1.f;
     printf("erwartete Länge: %.3f\n", laenge);
-    compareFloats(laenge, lenVecB);
+    testCompare(&laenge, &lenVecB, compareFloats);
 
     printLine();
 
@@ -169,7 +157,7 @@ void testeFunktionen(void){
     dot3f(&outDot, vectorA, vectorB);
     printf("Skalarproduckt Vektor A x Vektor B: %.3f\n", outDot);
     printf("erwartetes Skalarproduckt Vektor A x Vektor B: %.3f\n", expectedDot);
-    compareFloats(outDot, expectedDot);
+    testCompare(&outDot, &expectedDot, compareFloats);
     
     printLine();
 

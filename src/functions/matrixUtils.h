@@ -94,6 +94,11 @@ extern void printMat4(const GLfloat *mat);
 extern void printMat3(const GLfloat *mat);
 
 /**
+ * Vergleiche 2 floats mit einander. Liefert 1 wenn sie identisch sind
+ */
+extern int compareFloats(const GLfloat *a, const GLfloat *b);
+
+/**
  * Vergleiche 2 Vektoren der Länge 3 mit einander. Liefert 1 wenn sie identisch sind
  */
 extern int compareVec3(const GLfloat *vecA, const GLfloat *vecB);
