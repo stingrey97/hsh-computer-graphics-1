@@ -1,5 +1,10 @@
 #include "loadObj.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <GL/glew.h>
+
 typedef struct
 {
     float x, y, z;
@@ -61,11 +66,11 @@ void loadOBJ(const char *filename, GLfloat *out, int *werte)
         printf("Error opening file: %s\n", filename);
         return;
     }
-    Vec3 vArray[werte[0]];
-    Vec2 vtArray[werte[1]];
-    Vec3 vnArray[werte[2]];
+    Vec3* vArray = (Vec3 *)malloc((size_t)werte[0] * sizeof(Vec3));
+    Vec2* vtArray = (Vec2 *)malloc((size_t)werte[1] * sizeof(Vec2));
+    Vec3* vnArray = (Vec3 *)malloc((size_t)werte[2] * sizeof(Vec3));
 
-    char line[256];
+    char line[512];
     int iV = 0, iVT = 0, iVN = 0, iF = 0;
     while (fgets(line, sizeof(line), file))
     {
@@ -114,4 +119,7 @@ void loadOBJ(const char *filename, GLfloat *out, int *werte)
         }
     }
     fclose(file);
+    free(vArray);
+    free(vtArray);
+    free(vnArray);
 }

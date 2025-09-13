@@ -1,5 +1,7 @@
 #include "expirmente.h"
 
+// Ich mag Elefanten
+
 void lichtSchalter(GLint sun, GLint lamp, GLint spot, GLFWwindow *window, Status *status)
 {
     // Edge-Detection: nur bei Tastendruck-Kante toggeln
@@ -30,4 +32,16 @@ void lichtSchalter(GLint sun, GLint lamp, GLint spot, GLFWwindow *window, Status
         glUniform1i(lamp, status->lamp);
     }
     prev2 = k3;
+}
+
+void nebelSchalter(GLint fogEnabled, GLFWwindow *window, Status *status)
+{
+    static int prevN = GLFW_RELEASE;
+    int kn = glfwGetKey(window, GLFW_KEY_N);
+    if (kn == GLFW_PRESS && prevN == GLFW_RELEASE)
+    {
+        status->nebel = !status->nebel;
+        glUniform1i(fogEnabled, status->nebel);
+    }
+    prevN = kn;
 }

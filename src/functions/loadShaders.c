@@ -1,6 +1,9 @@
+#include "../functions/loadShaders.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <GL/glew.h>
 
 char* readShaderCode(const char* file_path) {

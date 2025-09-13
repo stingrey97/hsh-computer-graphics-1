@@ -1,5 +1,12 @@
 #include "drawUtils.h"
 
+#include <stdio.h>
+
+#include <GL/glew.h>
+
+#include "mesh.h"
+#include "matrixUtils.h"
+
 void drawMeshWithModel(const Mesh *m,
                        const float viewMatrix[16], const float projMatrix[16], const float model[16],
                        GLint MVLoc, GLint MVPLoc, GLint NormalMLoc)

@@ -11,10 +11,12 @@
 
 #define MAX_PITCH 1.55334306f
 #define FOV 45.0f
-#define KEY_SPEED 3.0f
+#define KEY_SPEED glfwGetKey(context->window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS ? 5.0f : 3.0f
 #define MOUSE_SPEED 0.05f
 #define START_HORIZONTAL_ANGLE 4.72f
 #define START_VERTICAL_ANGLE 0.0f
+#define FIXED_CAMERA
+#define CAMERA_HEIGHT 2.7f
 #define NO_DEBUG_MODE
 
 static double lastTime;
@@ -122,6 +124,11 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
         minus3f(context->eye, context->eye, ri);
     }
 
+    #ifdef FIXED_CAMERA
+        context->eye[1] = (glfwGetKey(context->window, GLFW_KEY_C) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) ? CAMERA_HEIGHT / 2.f : CAMERA_HEIGHT;
+    #endif
+
+
     // In case we want to add zoom by mousewheel later (change "0" to mousewheel)
     static GLfloat FoV = FOV - (GLfloat)(5 * 0);
 
@@ -137,6 +144,7 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
     plus3f(context->look, context->look, context->eye);
 
     lookAt(V, context->eye, context->look, context->up);
+    
     perspective(P, FoV, (GLfloat)context->width / (GLfloat)context->height, 0.1f, 100.0f);
 
 #ifdef DEBUG_MODE

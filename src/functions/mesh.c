@@ -102,6 +102,13 @@ void calculateTangente(const GLfloat* vertices, int vertexCount, GLfloat* tangen
 }
 
 
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <GL/glew.h>
+
+#include "loadObj.h"
+
 void loadMesh(const char* filename, Mesh *out){
     int werte[4];
     // read lines of OBJ4

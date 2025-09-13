@@ -1,12 +1,16 @@
+// Standard libs
 #include <stdio.h>
 #include <math.h>
 
+// GL libs
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+// Third party libs
 #define STB_IMAGE_IMPLEMENTATION
 #include "../functions/stb_image.h"
 
+// Own libs
 #include "../functions/AppContext.h"
 #include "../functions/matrixUtils.h"
 #include "../functions/loadShaders.h"
@@ -15,8 +19,11 @@
 #include "../functions/lightUtils.h"
 #include "../functions/camera.h"
 #include "../functions/expirmente.h"
+#include "../functions/fogUtils.h"
+#include "../functions/Skybox.h"
 #include "../functions/Textures.h"
 
+// Constants
 #define INIT_WINDOW_TITLE "OpenGL Program"
 #define INIT_WINDOW_WIDTH 1024
 #define INIT_WINDOW_HEIGHT 768
@@ -39,15 +46,14 @@ GLint albedoLoc, normalLoc, roughnessLoc;
 // Column textures
 GLuint albedoColumn, normalColumn, roughnessColumn;
 
+// Nebel (struct fog nebel)
+GLint uFogColor, uFogDensity, uFogEnabled;
+
 // Uniform Standorte
 GLint MVLoc, MVPLoc, NormalMLoc;
 
 // Mesh
-Mesh cube;
-Mesh teapot;
-Mesh column;
-Mesh gras;
-Mesh cottage;
+Mesh cube, teapot, column, gras, cottage, tree1, tree2, tree3, slenderman;
 
 // Licht Status
 Status status = {1, 1, 1};
@@ -92,13 +98,38 @@ void setMaterialGrass()
     glUniform4f(uMat_specular, 0.02f, 0.05f, 0.02f, 1.0f);
     glUniform1f(uMat_shininess, 5.0f);
 }
+void setMaterialWood()
+{
+    glUniform4f(uMat_emission, 0.00f, 0.00f, 0.00f, 1.0f);
+    glUniform4f(uMat_ambient, 0.08f, 0.05f, 0.03f, 1.0f);  // dunkles Grundlicht
+    glUniform4f(uMat_diffuse, 0.45f, 0.30f, 0.15f, 1.0f);  // warmes Braun (Holz)
+    glUniform4f(uMat_specular, 0.04f, 0.03f, 0.02f, 1.0f); // kaum Glanz
+    glUniform1f(uMat_shininess, 12.0f);                    // matt
+}
+
+void setMaterialTree()
+{
+    glUniform4f(uMat_emission, 0.00f, 0.00f, 0.00f, 1.0f);
+    glUniform4f(uMat_ambient, 0.06f, 0.08f, 0.06f, 1.0f);
+    glUniform4f(uMat_diffuse, 0.22f, 0.35f, 0.18f, 1.0f);  // dunkles Blattgrün
+    glUniform4f(uMat_specular, 0.03f, 0.03f, 0.03f, 1.0f); // kaum Glanz
+    glUniform1f(uMat_shininess, 10.0f);
+}
+void setMaterialSlenderman()
+{
+    glUniform4f(uMat_emission, 0.00f, 0.00f, 0.00f, 1.0f);
+    glUniform4f(uMat_ambient, 0.02f, 0.02f, 0.02f, 1.0f);  // sehr dunkles Grundlicht
+    glUniform4f(uMat_diffuse, 0.03f, 0.03f, 0.03f, 1.0f);  // fast schwarz
+    glUniform4f(uMat_specular, 0.12f, 0.12f, 0.12f, 1.0f); // feiner Glanz für Silhouette
+    glUniform1f(uMat_shininess, 64.0f);
+}
 
 void init(AppContext *context)
 {
     // Initial camera
-    setVec3(context->eye, 0.0f, 1.6f, 4.5f);
-    setVec3(context->look, 0.0f, 0.7f, 0.0f); // leicht über Säulenmitte
-    setVec3(context->up, 0.0f, 1.0f, 0.0f);
+    setVec3(context->eye, 5, 0, 0);
+    setVec3(context->look, 0, 0, 0);
+    setVec3(context->up, 0, 1, 0);
 
     initCamera(context);
 
@@ -149,6 +180,11 @@ void init(AppContext *context)
     uSpot_linear = glGetUniformLocation(context->programID, "spotlicht.linear");
     uSpot_quadratic = glGetUniformLocation(context->programID, "spotlicht.quadratic");
 
+    // Nebel
+    uFogColor = glGetUniformLocation(context->programID, "nebel.color");
+    uFogDensity = glGetUniformLocation(context->programID, "nebel.density");
+    uFogEnabled = glGetUniformLocation(context->programID, "nebel.enabled");
+
     // Textur
     albedoLoc = glGetUniformLocation(context->programID, "uAlbedo");
     normalLoc = glGetUniformLocation(context->programID, "uNormalMap");
@@ -168,6 +204,12 @@ void init(AppContext *context)
     glUniform1i(uLamp_enabled, 1);
     glUniform1i(uSpot_enabled, 1);
 
+    // Nebel an
+    glUniform1i(uFogEnabled, 1);
+
+    // Nebel
+    initializeFog(uFogColor, uFogDensity);
+
     // Richtungslicht
     initializeDirectionalLight(uSun_ambient, uSun_diffuse, uSun_specular);
 
@@ -181,7 +223,11 @@ void init(AppContext *context)
     loadMesh("objects/column.obj", &column);
     loadMesh("objects/cube.obj", &cube);
     loadMesh("objects/gras.obj", &gras);
-    loadMesh("objects/cottage_blender.obj",&cottage);
+    loadMesh("objects/cottage_blender.obj", &cottage);
+    loadMesh("objects/Tree1.obj", &tree1);
+    loadMesh("objects/Tree2.obj", &tree2);
+    loadMesh("objects/Tree3.obj", &tree3);
+    loadMesh("objects/slenderman.obj", &slenderman);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -189,8 +235,12 @@ void init(AppContext *context)
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
-    glClearColor(0.0f, 0.5f, 0.5f, 1.0f);
-    glEnable(GL_FRAMEBUFFER_SRGB);
+    glClearColor(0.17f, 0.19f, 0.21f, 1.0f);
+
+    // Skybox
+    initSkybox(context);
+    glUseProgram(context->skyboxProgramID);
+    glUniform1i(glGetUniformLocation(context->skyboxProgramID, "skybox"), 0);
 }
 
 void draw(AppContext *context)
@@ -204,6 +254,7 @@ void draw(AppContext *context)
     camera(V, P, context);
 
     lichtSchalter(uSun_enabled, uLamp_enabled, uSpot_enabled, context->window, &status);
+    nebelSchalter(uFogEnabled, context->window, &status);
 
     // Richtungslicht an die Kamera setzten
     setDirectionalLight(uSun_direction, V, 1.0f, -1.0f, -1.0f);
@@ -226,7 +277,113 @@ void draw(AppContext *context)
     translate(M, M, (GLfloat[]){0.0f, -0.01f, 0.0f});
     scale(M, M, (GLfloat[]){0.42f, 0.45f, 0.42f});
     setMaterialGrayPillar();
+    drawMeshWithModel(&column, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+
+    // 2) Golderner Teapot
+    identity(M);
+    translate(M, M, (GLfloat[]){0.0f, 1.6f, 0.0f});
+    scale(M, M, (GLfloat[]){0.14f, 0.14f, 0.14f});
+    setMaterialPolishedGold();
+    drawMeshWithModel(&teapot, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+
+    // 3) Gras
+    identity(M);
+    translate(M, M, (GLfloat[]){0.0f, -0.01f, 0.0f});
+    scale(M, M, (GLfloat[]){0.42f, 0.45f, 0.42f});
+    setMaterialGrass();
+    drawMeshWithModel(&gras, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+
+    // 4) Cottage
+    identity(M);
+    translate(M, M, (GLfloat[]){25.0f, 0.0f, -15.0f});
+    rotateY(M, M, 20);
+    scale(M, M, (GLfloat[]){0.5f, 0.5f, 0.5f});
+    setMaterialWood();
     drawMeshWithModel(&cottage, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+
+    // 5) Slenderman
+    identity(M);
+    translate(M, M, (GLfloat[]){1.4f, 0.0f, -3.2f});
+    rotateY(M, M, 180);
+    scale(M, M, (GLfloat[]){0.9f, 0.9f, 0.9f});
+    setMaterialSlenderman();
+    drawMeshWithModel(&slenderman, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+
+    // 6) Bäume / kleiner Wald (einfacher Ring, wechselnde Modelle)
+    {
+        const int count = 50;     // Anzahl Bäume
+        const float cx = 0.8f;    // Mittelpunkt X (z. B. Nähe Cottage)
+        const float cz = -1.4f;   // Mittelpunkt Z
+        const float rMin = 10.0f; // innerer Radius (freie Fläche)
+        const float rMax = 50.0f; // äußerer Radius (Waldgröße)
+
+        for (int i = 0; i < count; ++i)
+        {
+            // Winkel & Radius (einfach)
+            float t = i * 0.7f;                 // Schrittwinkel
+            float u = (float)i / (float)count;  // 0..1
+            float r = rMin + (rMax - rMin) * u; // wächst nach außen
+
+            // Position + kleine Offsets (gegen perfekte Ordnung)
+            float x = cx + r * cosf(t);
+            float z = cz + r * sinf(t);
+            if (i % 2 == 0)
+                x += 0.20f;
+            if (i % 3 == 0)
+                z -= 0.15f;
+
+            // Größe & Rotation leicht variieren
+            float s = 0.40f + 0.15f * ((i % 4) / 3.0f); // ~0.40..0.55
+            float rotDeg = 10.0f * (i % 18);            // 0..170° in 10°-Schritten
+            // Falls deine rotateY RADIAN erwartet, nimm:
+            // float rotRad = rotDeg * (float)M_PI / 180.0f;
+
+            // Variante wählen: 0 -> tree1, 1 -> tree2, 2 -> tree3
+            Mesh *tree = &tree1;
+            if (i % 3 == 1)
+                tree = &tree2;
+            else if (i % 3 == 2)
+                tree = &tree3;
+
+            // Model-Matrix und Draw
+            GLfloat M[16];
+            identity(M);
+            translate(M, M, (GLfloat[]){x, 0.0f, z});
+            rotateY(M, M, rotDeg); // oder rotateY(M,M,rotRad) s.o.
+            scale(M, M, (GLfloat[]){s, s, s});
+
+            setMaterialTree();
+            drawMeshWithModel(tree, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+        }
+    }
+
+    // 7) Glaswürfel
+    identity(M);
+    translate(M, M, (GLfloat[]){0.0f, 1.42f, 0.0f});
+    scale(M, M, (GLfloat[]){0.24f, 0.24f, 0.24f});
+    setMaterialGlass(0.18f);
+    drawtransparentMeshWithModel(&cube, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+
+    // Skybox
+    glCullFace(GL_FRONT);
+    glUseProgram(context->skyboxProgramID);
+    glDepthFunc(GL_LEQUAL);
+    GLfloat VP[16];
+    GLfloat V_noT[16];
+    memcpy(V_noT, V, sizeof(V_noT));
+    V_noT[12] = V_noT[13] = V_noT[14] = 0.0f;
+    mat4f_mul_mat4f(VP, P, V_noT);
+    glUniformMatrix4fv(glGetUniformLocation(context->skyboxProgramID, "VP"), 1, GL_FALSE, VP);
+
+    glBindVertexArray(context->skyboxVAO);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, context->skyboxTexture);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    glCullFace(GL_BACK);
+    
+    // Switch back to the normal depth functionx
+    glDepthFunc(GL_LESS);
 }
 
 int main(void)
@@ -249,7 +406,7 @@ int main(void)
 
     if (!context.window)
     {
-        printf("FEHLER BEIM FENSTER ERSTELLEN\n");
+        printf("Error creating window\n");
         glfwTerminate();
         return -1;
     }
