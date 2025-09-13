@@ -34,4 +34,10 @@
 #define EPS 1e-6f
 #define PI 3.14159265358979323846
 
+/*
+ * Enviroment 
+ */
+#define MAX_TREE_COUNT 100
+#define TREE_RENDER_DISTANCE 30.0f
+
 #endif

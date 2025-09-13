@@ -1,23 +1,35 @@
 #version 330 core
+layout(location=0) in vec3 vVertex;
+layout(location=1) in vec3 vNormal;
+// MV-Spalten
+layout(location=2) in vec4 iMV0;
+layout(location=3) in vec4 iMV1;
+layout(location=4) in vec4 iMV2;
+layout(location=5) in vec4 iMV3;
+// NormalM-Spalten
+layout(location=10) in vec3 iN0;
+layout(location=11) in vec3 iN1;
+layout(location=12) in vec3 iN2;
 
-layout(location = 0) in vec3 vVertex;
-layout(location = 1) in vec3 vNormal;
+// Uniforms für Nicht-Instanced-Objekte
+uniform mat4 MV;
+uniform mat4 MVP;
+uniform mat3 NormalM;
 
+// NEU für Instancing:
+uniform mat4 P;
+uniform bool useInstancing;
 
-uniform mat4 MV;        // ModelView
-uniform mat4 MVP;       // ModelViewProjection
-uniform mat3 NormalM;   // Normalenmatrix = inverse(transpose(upper-left 3x3 von MV))
+smooth out vec3 Position;
+smooth out vec3 Normal;
 
-smooth out vec3 Position; // im Augenkoordinatensystem
-smooth out vec3 Normal;   // im Augenkoordinatensystem
+void main(){
+    mat4 MVx = useInstancing ? mat4(iMV0,iMV1,iMV2,iMV3) : MV;
+    mat3 Nx  = useInstancing ? mat3(iN0,iN1,iN2)         : NormalM;
 
-void main(void)
-{
-    vec4 V = vec4(vVertex, 1.0);  // w = 1 hinzufügen
-
-    gl_Position = MVP * V;        // Clip-Koordinaten
-    vec4 Pos = MV * V;            // Augenkoordinaten
+    vec4 V4 = vec4(vVertex,1.0);
+    gl_Position = P * (MVx * V4); // MVP nicht als Attribut
+    vec4 Pos = MVx * V4;
     Position = Pos.xyz / Pos.w;
-    Normal   = normalize(NormalM * vNormal);
+    Normal   = normalize(Nx * vNormal);
 }
-

@@ -47,13 +47,132 @@ Mesh cube, teapot, column, gras, cottage, tree1, tree2, tree3, slenderman;
 // Licht Status
 Status status = {1, 1, 1};
 
+/*
+ * ???
+ */
+// --- Instancing: CPU -> GPU Strukturen
+typedef struct
+{
+    GLfloat m[16];
+} Mat4C;
+typedef struct
+{
+    GLfloat m[9];
+} Mat3C;
+
+typedef struct
+{
+    Mat4C MV;
+    Mat3C NormalM;
+} InstanceCPU;
+
+typedef struct
+{
+    GLuint vbo;
+    int count;
+    Mat4C *Model;
+    InstanceCPU *cpu;
+    GLsizeiptr capacity; // in Bytes, für VBO und cpu
+} InstanceSet;
+
+// Drei Baumvarianten
+static InstanceSet gTrees[3] = {0};
+
+// Uniform-Schalter
+GLint uUseInstancing;
+
+// --- Attribute für Instancing an ein VAO binden (C, keine Lambdas)
+static void bindInstanceAttributes(GLuint vao, GLuint *outVBO, GLsizeiptr bufferSizeBytes)
+{
+    glBindVertexArray(vao);
+    glGenBuffers(1, outVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, *outVBO);
+    glBufferData(GL_ARRAY_BUFFER, bufferSizeBytes, NULL, GL_DYNAMIC_DRAW); // initial leer
+
+    GLsizei stride = (GLsizei)sizeof(InstanceCPU);
+    size_t base = 0;
+
+    // iMV -> locations 2..5 (4 x vec4)
+    for (int k = 0; k < 4; ++k)
+    {
+        glEnableVertexAttribArray(2 + k);
+        glVertexAttribPointer(2 + k, 4, GL_FLOAT, GL_FALSE, stride, (void *)(base + k * 4 * sizeof(GLfloat)));
+        glVertexAttribDivisor(2 + k, 1);
+    }
+    base += 16 * sizeof(GLfloat);
+
+    // iNormalM -> locations 10..12 (3 x vec3)
+    for (int k = 0; k < 3; ++k)
+    {
+        glEnableVertexAttribArray(10 + k);
+        glVertexAttribPointer(10 + k, 3, GL_FLOAT, GL_FALSE, stride, (void *)(base + k * 3 * sizeof(GLfloat)));
+        glVertexAttribDivisor(10 + k, 1);
+    }
+
+    glBindVertexArray(0);
+}
+
+// --- Pro Frame CPU-Daten befüllen und instanziert zeichnen (C, keine Lambdas)
+static void updateAndDrawTrees(const Mesh *mesh, InstanceSet *set,
+                               const GLfloat V[16], const GLfloat P[16],
+                               AppContext *ctx)
+{
+    if (!set || set->count <= 0) return;
+
+    const float maxDist2 = TREE_RENDER_DISTANCE * TREE_RENDER_DISTANCE;
+    int write = 0;
+
+    for (int i = 0; i < set->count; ++i) {
+        // Weltposition aus Model-Matrix (column-major: M[12..14])
+        float wx = set->Model[i].m[12];
+        float wy = set->Model[i].m[13];
+        float wz = set->Model[i].m[14];
+
+        float dx = wx - ctx->eye[0];
+        float dy = wy - ctx->eye[1];
+        float dz = wz - ctx->eye[2];
+        float d2 = dx*dx + dy*dy + dz*dz;
+        if (d2 > maxDist2) continue; // zu weit weg -> überspringen
+
+        // MV = V * M
+        GLfloat MV[16];
+        mat4f_mul_mat4f(MV, V, set->Model[i].m);
+
+        // Instanzdaten schreiben -> kompakt in set->cpu[write]
+        memcpy(set->cpu[write].MV.m, MV, sizeof(MV));
+        mat3_from_mat4(set->cpu[write].NormalM.m, MV);
+        ++write;
+    }
+
+    if (write == 0) return; // nichts sichtbar
+
+    // Upload genau der sichtbaren Instanzen
+    glBindBuffer(GL_ARRAY_BUFFER, set->vbo);
+    void* dst = glMapBufferRange(GL_ARRAY_BUFFER, 0,
+                                 (GLsizeiptr)write * (GLsizeiptr)sizeof(InstanceCPU),
+                                 GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
+    if (dst) {
+        memcpy(dst, set->cpu, (size_t)write * sizeof(InstanceCPU));
+        glUnmapBuffer(GL_ARRAY_BUFFER);
+    }
+
+    // Draw nur mit sichtbarer Anzahl
+    glBindVertexArray(mesh->vao);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, mesh->count, write);
+    glBindVertexArray(0);
+}
+
+/*
+ * ???
+ */
+
 void framebuffer_size_callback(GLFWwindow *window, int cb_width, int cb_height)
 {
     glViewport(0, 0, cb_width, cb_height);
 }
 
 void init(AppContext *ctx)
-{ 
+{
     // Initial camera
     setVec3(ctx->eye, 5, 0, 0);
     setVec3(ctx->look, 0, 0, 0);
@@ -112,6 +231,9 @@ void init(AppContext *ctx)
     uFogDensity = glGetUniformLocation(ctx->programID, "nebel.density");
     uFogEnabled = glGetUniformLocation(ctx->programID, "nebel.enabled");
 
+    // ???
+    uUseInstancing = glGetUniformLocation(ctx->programID, "useInstancing");
+
     // Lichter an aus
     glUniform1i(uSun_enabled, 1);
     glUniform1i(uLamp_enabled, 1);
@@ -141,6 +263,69 @@ void init(AppContext *ctx)
     loadMesh("objects/Tree2.obj", &tree2);
     loadMesh("objects/Tree3.obj", &tree3);
     loadMesh("objects/slenderman.obj", &slenderman);
+
+    {
+        const int count = MAX_TREE_COUNT;
+        const float cx = 0.8f, cz = -1.4f, rMin = 10.0f, rMax = 50.0f;
+
+        // Speicher für Model pro Variante (max count; final count unten)
+        gTrees[0].Model = (Mat4C *)malloc(count * sizeof(Mat4C));
+        gTrees[1].Model = (Mat4C *)malloc(count * sizeof(Mat4C));
+        gTrees[2].Model = (Mat4C *)malloc(count * sizeof(Mat4C));
+        int n1 = 0, n2 = 0, n3 = 0;
+
+        for (int i = 0; i < count; ++i)
+        {
+            float t = i * 0.7f;
+            float u = (float)i / (float)count;
+            float r = rMin + (rMax - rMin) * u;
+
+            float x = cx + r * cosf(t);
+            float z = cz + r * sinf(t);
+            if (i % 2 == 0)
+                x += 0.20f;
+            if (i % 3 == 0)
+                z -= 0.15f;
+
+            float s = 0.40f + 0.15f * ((i % 4) / 3.0f);
+            float rotDeg = 10.0f * (i % 18);
+
+            GLfloat M[16];
+            identity(M);
+            translate(M, M, (GLfloat[]){x, 0.0f, z});
+            rotateY(M, M, rotDeg);
+            scale(M, M, (GLfloat[]){s, s, s});
+
+            int v = i % 3;
+            if (v == 0)
+            {
+                memcpy(gTrees[0].Model[n1++].m, M, sizeof(M));
+            }
+            else if (v == 1)
+            {
+                memcpy(gTrees[1].Model[n2++].m, M, sizeof(M));
+            }
+            else
+            {
+                memcpy(gTrees[2].Model[n3++].m, M, sizeof(M));
+            }
+        }
+        gTrees[0].count = n1;
+        gTrees[1].count = n2;
+        gTrees[2].count = n3;
+
+        for (int v = 0; v < 3; ++v)
+        {
+            gTrees[v].capacity = (GLsizeiptr)gTrees[v].count * sizeof(InstanceCPU);
+            gTrees[v].cpu = (InstanceCPU *)malloc((size_t)gTrees[v].capacity);
+        }
+
+        // ---------- Instance-VBO an die VAOs hängen ----------
+        // Hilfsfunktion lokal (bindet Attribute 2..12 mit Divisor 1)
+        bindInstanceAttributes(tree1.vao, &gTrees[0].vbo, gTrees[0].capacity);
+        bindInstanceAttributes(tree2.vao, &gTrees[1].vbo, gTrees[1].capacity);
+        bindInstanceAttributes(tree3.vao, &gTrees[2].vbo, gTrees[2].capacity);
+    }
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -216,52 +401,22 @@ void draw(AppContext *ctx)
     setMaterialSlenderman(ctx);
     drawMeshWithModel(&slenderman, V, P, M, MVLoc, MVPLoc, NormalMLoc);
 
-    // 6) Bäume / kleiner Wald (einfacher Ring, wechselnde Modelle)
+    // 6) Bäume / kleiner Wald — instanced
     {
-        const int count = 50;     // Anzahl Bäume
-        const float cx = 0.8f;    // Mittelpunkt X (z. B. Nähe Cottage)
-        const float cz = -1.4f;   // Mittelpunkt Z
-        const float rMin = 10.0f; // innerer Radius (freie Fläche)
-        const float rMax = 50.0f; // äußerer Radius (Waldgröße)
+        glDisable(GL_BLEND);
+        glUniform1i(uUseInstancing, 1);
+        setMaterialTree(ctx);
 
-        for (int i = 0; i < count; ++i)
-        {
-            // Winkel & Radius (einfach)
-            float t = i * 0.7f;                 // Schrittwinkel
-            float u = (float)i / (float)count;  // 0..1
-            float r = rMin + (rMax - rMin) * u; // wächst nach außen
+        // P-Uniform setzen (nur einmal pro Frame nötig)
+        GLint PLoc = glGetUniformLocation(ctx->programID, "P");
+        glUniformMatrix4fv(PLoc, 1, GL_FALSE, P);
 
-            // Position + kleine Offsets (gegen perfekte Ordnung)
-            float x = cx + r * cosf(t);
-            float z = cz + r * sinf(t);
-            if (i % 2 == 0)
-                x += 0.20f;
-            if (i % 3 == 0)
-                z -= 0.15f;
+        updateAndDrawTrees(&tree1, &gTrees[0], V, P, ctx);
+        updateAndDrawTrees(&tree2, &gTrees[1], V, P, ctx);
+        updateAndDrawTrees(&tree3, &gTrees[2], V, P, ctx);
 
-            // Größe & Rotation leicht variieren
-            float s = 0.40f + 0.15f * ((i % 4) / 3.0f); // ~0.40..0.55
-            float rotDeg = 10.0f * (i % 18);            // 0..170° in 10°-Schritten
-            // Falls deine rotateY RADIAN erwartet, nimm:
-            // float rotRad = rotDeg * (float)M_PI / 180.0f;
-
-            // Variante wählen: 0 -> tree1, 1 -> tree2, 2 -> tree3
-            Mesh *tree = &tree1;
-            if (i % 3 == 1)
-                tree = &tree2;
-            else if (i % 3 == 2)
-                tree = &tree3;
-
-            // Model-Matrix und Draw
-            GLfloat M[16];
-            identity(M);
-            translate(M, M, (GLfloat[]){x, 0.0f, z});
-            rotateY(M, M, rotDeg); // oder rotateY(M,M,rotRad) s.o.
-            scale(M, M, (GLfloat[]){s, s, s});
-
-            setMaterialTree(ctx);
-            drawMeshWithModel(tree, V, P, M, MVLoc, MVPLoc, NormalMLoc);
-        }
+        glUniform1i(uUseInstancing, 0);
+        glEnable(GL_BLEND);
     }
 
     // 7) Glaswürfel
@@ -288,7 +443,7 @@ void draw(AppContext *ctx)
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
     glCullFace(GL_BACK);
-    
+
     // Switch back to the normal depth functionx
     glDepthFunc(GL_LESS);
 }
