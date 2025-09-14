@@ -30,8 +30,8 @@ void initializeSpotLight(GLint uSpot_ambient, GLint uSpot_diffuse, GLint uSpot_s
     glUniform4f(uSpot_diffuse, 2.00f, 2.00f, 2.00f, 1.0f);
     glUniform4f(uSpot_specular, 2.00f, 2.00f, 2.00f, 1.0f);
 
-    glUniform1f(uSpot_linear, 0.002f);
-    glUniform1f(uSpot_quadratic, 0.00002f);
+    glUniform1f(uSpot_linear, 0.02f);
+    glUniform1f(uSpot_quadratic, 0.002f);
 
     float innerDeg = 11.0f, outerDeg = 18.0f;
     float innerRad = innerDeg * (float)PI / 180.0f;
