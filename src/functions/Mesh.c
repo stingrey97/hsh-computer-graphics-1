@@ -4,6 +4,7 @@
 // Standard libs
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 // OpenGL
 #include <GL/glew.h>
@@ -11,15 +12,14 @@
 // Own libs
 #include "ObjectLoader.h"
 
+void loadMesh(const char *filename, Mesh *out)
+{
+    assert(filename != NULL && out != NULL);
 
-// Test
-
-
-void loadMesh(const char* filename, Mesh *out){
     int werte[4];
     // read lines of OBJ4
     countLinesF(filename, werte);
-    GLfloat* vertices = (GLfloat*)malloc(sizeof(GLfloat) * werte[3] * 8);
+    GLfloat *vertices = (GLfloat *)malloc(sizeof(GLfloat) * werte[3] * 8);
     // lese das OBJ aus und fülle die Vertices
     // 7 Werte pro Vertex: x, y, z, u, v, nx, ny, nz
     loadOBJ(filename, vertices, werte);

@@ -62,7 +62,7 @@ int vectorsAreDifferent(const GLfloat a[3], const GLfloat b[3])
     return dist2 > EPS;
 }
 
-static inline int vectorsNotParallel(const GLfloat a[3], const GLfloat b[3])
+int vectorsNotParallel(const GLfloat a[3], const GLfloat b[3])
 {
     const GLfloat cx = a[1] * b[2] - a[2] * b[1];
     const GLfloat cy = a[2] * b[0] - a[0] * b[2];

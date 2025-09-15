@@ -3,6 +3,7 @@
 
 // Standard libs
 #include <stdio.h>
+#include <assert.h>
 
 // OpenGL
 #include <GL/glew.h>
@@ -18,6 +19,8 @@ GLuint loadTexture2D(void)
 
 GLuint loadCubemap(const char *faces[6])
 {
+    assert(faces != NULL);
+    
     GLuint tex = 0;
     glGenTextures(1, &tex);
     glBindTexture(GL_TEXTURE_CUBE_MAP, tex);
