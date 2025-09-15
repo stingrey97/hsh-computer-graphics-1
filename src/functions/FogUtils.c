@@ -1,6 +1,9 @@
 // Self
 #include "FogUtils.h"
 
+// Standart libs
+#include <assert.h>
+
 // OpenGL
 #include <GL/glew.h>
 
