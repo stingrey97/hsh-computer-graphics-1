@@ -45,7 +45,7 @@ GLint albedoLoc, normalLoc, roughnessLoc, uvScale;
 
 // textures
 GLuint albedoCottage, normalCottage, roughnessCottage;
-GLuint albedoColumn;
+GLuint albedoColumn, normalColumn, roughColumn;
 GLuint albedoGras, normalGras, roughnessGras;
 GLuint albedoBaum1und2, albedoBaum3, normalBaum, roughBaum;
 GLuint albedoGlas, normalGlas, roughGlas;
@@ -220,8 +220,10 @@ void init(AppContext *context)
     roughGlas = loadTexture2D("textures/glas/glass_roughness_glossy_012.png", 0);
     // Coulmn
     albedoColumn = loadTexture2D("textures/column/Column_Albedo_fixed.png", 1);
-    //Teapot
-    albedoTeapot = loadTexture2D("textures/teapot/1df5a76d-fb2d-45d4-ae28-7265782ed03b.png",1);
+    normalColumn = loadTexture2D("textures/column/column_normal.002.png", 0);
+    roughColumn = loadTexture2D("textures/column/column_roughness.png", 0);
+    // Teapot
+    albedoTeapot = loadTexture2D("textures/teapot/1df5a76d-fb2d-45d4-ae28-7265782ed03b.png", 1);
 
     // Lichter an aus
     glUniform1i(uSun_enabled, 1);
@@ -320,6 +322,13 @@ void draw(AppContext *context)
     drawMeshWithModel(&gras, V, P, M, MVLoc, MVPLoc, NormalMLoc);
 
     // Graue Säule
+    glUniform2f(uvScale, 1.0f, 1.0f);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, albedoColumn);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normalColumn);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, roughColumn);
     identity(M);
     translate(M, M, (GLfloat[]){0.0f, -0.01f, 0.0f});
     scale(M, M, (GLfloat[]){0.42f, 0.45f, 0.42f});
@@ -333,7 +342,7 @@ void draw(AppContext *context)
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, normalGlas);
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, normalGlas);
+    glBindTexture(GL_TEXTURE_2D, roughGlas);
     identity(M);
     translate(M, M, (GLfloat[]){0.0f, 1.6f, 0.0f});
     scale(M, M, (GLfloat[]){0.14f, 0.14f, 0.14f});
