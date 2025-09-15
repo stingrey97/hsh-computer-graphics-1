@@ -18,6 +18,7 @@
 #define START_VERTICAL_ANGLE 0.0f
 #define FIXED_CAMERA
 #define CAMERA_HEIGHT 2.7f
+#define JUMP_FORCE 3.5f
 #define NO_DEBUG_MODE
 
 static double lastTime;
@@ -128,7 +129,31 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
     }
 
     #ifdef FIXED_CAMERA
-        context->eye[1] = (glfwGetKey(context->window, GLFW_KEY_C) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) ? CAMERA_HEIGHT / 2.f : CAMERA_HEIGHT;
+    static float verticalSpeed;
+    float baseHeight = CAMERA_HEIGHT;
+    if (glfwGetKey(context->window, GLFW_KEY_C) == GLFW_PRESS ||
+        glfwGetKey(context->window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+        baseHeight = CAMERA_HEIGHT / 2.f;
+    }
+
+    if (glfwGetKey(context->window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+        if (fabsf(context->eye[1] - baseHeight) < 0.001f) {
+            verticalSpeed = JUMP_FORCE;
+        }
+    }
+
+    verticalSpeed -= 9.81f * deltaTime;
+    context->eye[1] += verticalSpeed * deltaTime;
+
+    if (context->eye[1] < baseHeight) {
+        context->eye[1] = baseHeight;
+        verticalSpeed   = 0.f;
+    }
+
+    // Debug-Ausgabe
+    #ifdef DEBUG_MODE
+        printf("Höhe: %.2f\n", context->eye[1]);   
+    #endif 
     #endif
 
 

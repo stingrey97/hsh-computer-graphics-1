@@ -11,7 +11,8 @@ Die main.out ausführen
 
 W,A,S,D / ↑,↓,←,→   Bewegen in der Szene
 C / Strg            Hocken
-L-Shift             Sprint
+L-Shift             Sprinten
+Space               Springen
 F                   Taschenlampe an/aus
 N                   Nebel an/aus
 1                   Richtungslicht an/aus
