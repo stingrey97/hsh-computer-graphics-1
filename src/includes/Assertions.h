@@ -19,6 +19,6 @@ int isValidMatrix16f(const GLfloat *mat);
 int vectorsAreDifferent(const GLfloat a[3], const GLfloat b[3]);
 
 // Returns 1 if all 9 entries of the 3x3 matrix are finite values.
-int isValidMatrix9f(const GLfloat *mat)
+int isValidMatrix9f(const GLfloat *mat);
 
 #endif
