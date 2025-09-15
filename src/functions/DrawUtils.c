@@ -3,6 +3,7 @@
 
 // Standard libs
 #include <stdio.h>
+#include <assert.h>
 
 // OpenGL
 #include <GL/glew.h>
@@ -10,11 +11,19 @@
 // Own libs
 #include "Mesh.h"
 #include "MathUtils.h"
+#include "Assertions.h"
 
 void drawMeshWithModel(const Mesh *m,
                        const float viewMatrix[16], const float projMatrix[16], const float model[16],
                        GLint MVLoc, GLint MVPLoc, GLint NormalMLoc)
 {
+    // Assertions
+    assert(m != NULL);
+    assert(isValidMatrix16f(viewMatrix));
+    assert(isValidMatrix16f(projMatrix));
+    assert(isValidMatrix16f(model));
+    assert(MVLoc >= 0 && MVPLoc >= 0 && NormalMLoc >= 0);
+
     GLfloat MV[16], MVP[16], NormalM[9];
     mat4f_mul_mat4f(MV, viewMatrix, model);
     mat4f_mul_mat4f(MVP, projMatrix, MV);
@@ -33,6 +42,13 @@ void drawtransparentMeshWithModel(const Mesh *m,
                                   const float viewMatrix[16], const float projMatrix[16], const float model[16],
                                   GLint MVLoc, GLint MVPLoc, GLint NormalMLoc)
 {
+    // Assertions
+    assert(m != NULL);
+    assert(isValidMatrix16f(viewMatrix));
+    assert(isValidMatrix16f(projMatrix));
+    assert(isValidMatrix16f(model));
+    assert(MVLoc >= 0 && MVPLoc >= 0 && NormalMLoc >= 0);
+
     // Matrizen vorbereiten (einmal) – wird in beiden Pässen benutzt
     GLfloat MV[16], MVP[16], NormalM[9];
     mat4f_mul_mat4f(MV, viewMatrix, model);

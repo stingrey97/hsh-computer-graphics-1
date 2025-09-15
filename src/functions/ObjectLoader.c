@@ -4,6 +4,7 @@
 // Standard libs
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 // OepnGL
 #include <GL/glew.h>
@@ -26,6 +27,8 @@ typedef struct
 // wie viele v/t/vn/f zeilen gibt es um entsprechende arrays zu allokieren
 void countLinesF(const char *filename, int *werte)
 {
+    assert(filename != NULL && werte != NULL);
+
     int countV = 0;
     int countVT = 0;
     int countVN = 0;
@@ -69,9 +72,9 @@ void loadOBJ(const char *filename, GLfloat *out, int *werte)
         printf("Error opening file: %s\n", filename);
         return;
     }
-    Vec3* vArray = (Vec3 *)malloc((size_t)werte[0] * sizeof(Vec3));
-    Vec2* vtArray = (Vec2 *)malloc((size_t)werte[1] * sizeof(Vec2));
-    Vec3* vnArray = (Vec3 *)malloc((size_t)werte[2] * sizeof(Vec3));
+    Vec3 *vArray = (Vec3 *)malloc((size_t)werte[0] * sizeof(Vec3));
+    Vec2 *vtArray = (Vec2 *)malloc((size_t)werte[1] * sizeof(Vec2));
+    Vec3 *vnArray = (Vec3 *)malloc((size_t)werte[2] * sizeof(Vec3));
 
     char line[512];
     int iV = 0, iVT = 0, iVN = 0, iF = 0;

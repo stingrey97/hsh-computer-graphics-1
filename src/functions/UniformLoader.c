@@ -1,6 +1,9 @@
 // Self
 #include "UniformLoader.h"
 
+// Standard libs
+#include <assert.h>
+
 // OpenGL
 #include <GL/glew.h>
 
@@ -9,6 +12,8 @@
 
 void loadUniforms(AppContext *ctx)
 {
+    assert(ctx != NULL);
+
     // einmal die Location holen Matrizen
     ctx->MVLoc = glGetUniformLocation(ctx->programID, "MV");
     ctx->MVPLoc = glGetUniformLocation(ctx->programID, "MVP");

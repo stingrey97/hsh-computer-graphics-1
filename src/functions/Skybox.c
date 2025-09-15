@@ -3,6 +3,7 @@
 
 // Standard libs
 #include <GL/glew.h>
+#include <assert.h>
 
 // Own libs
 #include "Constants.h"
@@ -12,16 +13,18 @@
 
 void initSkybox(AppContext *context)
 {
+    assert(context != NULL);
+
     const float skyboxVertices[] =
         {
             //   Coordinates
-            -1.0f, -1.0f, 1.0f,  //        7--------6
-            1.0f, -1.0f, 1.0f,   //       /|       /|
-            1.0f, -1.0f, -1.0f,  //      4--------5 |
-            -1.0f, -1.0f, -1.0f, //      | |      | |
-            -1.0f, 1.0f, 1.0f,   //      | 3------|-2
-            1.0f, 1.0f, 1.0f,    //      |/       |/
-            1.0f, 1.0f, -1.0f,   //      0--------1
+            -1.0f, -1.0f, 1.0f,
+            1.0f, -1.0f, 1.0f,
+            1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f
+            -1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, -1.0f,
             -1.0f, 1.0f, -1.0f};
 
     const unsigned int skyboxIndices[] =

@@ -4,16 +4,20 @@
 // Standard libs
 #include <stdio.h>
 #include <math.h>
+#include <assert.h>
 
 // OpenGL
 #include <GL/glew.h>
 
 // Own libs
 #include "Constants.h"
+#include "Assertions.h"
 #include "MathUtils.h"
 
 void initializeDirectionalLight(GLint uSun_ambient, GLint uSun_diffuse, GLint uSun_specular)
 {
+    assert(uSun_ambient >= 0 && uSun_diffuse >= 0 && uSun_specular);
+
     glUniform4f(uSun_ambient, 0.07f, 0.08f, 0.11f, 1.0f);
     glUniform4f(uSun_diffuse, 0.14f, 0.16f, 0.22f, 1.0f);
     glUniform4f(uSun_specular, 0.07f, 0.08f, 0.12f, 1.0f);
@@ -21,6 +25,8 @@ void initializeDirectionalLight(GLint uSun_ambient, GLint uSun_diffuse, GLint uS
 
 void initializePointLight(GLint uLamp_ambient, GLint uLamp_diffuse, GLint uLamp_specular, GLint uLamp_linear, GLint uLamp_quadratic)
 {
+    assert(uLamp_ambient >= 0 && uLamp_diffuse >= 0 && uLamp_specular && uLamp_linear >= 0 && uLamp_quadratic >= 0);
+
     glUniform4f(uLamp_ambient, 0.25f, 0.25f, 0.25f, 1.0f);
     glUniform4f(uLamp_diffuse, 1.0f, 1.0f, 1.0f, 1.0f);
     glUniform4f(uLamp_specular, 1.0f, 1.0f, 1.0f, 1.0f);
@@ -31,6 +37,8 @@ void initializePointLight(GLint uLamp_ambient, GLint uLamp_diffuse, GLint uLamp_
 
 void initializeSpotLight(GLint uSpot_ambient, GLint uSpot_diffuse, GLint uSpot_specular, GLint uSpot_innerCone, GLint uSpot_outerCone, GLint uSpot_linear, GLint uSpot_quadratic)
 {
+    assert(uSpot_ambient >= 0 && uSpot_diffuse >= 0 && uSpot_specular >= 0 && uSpot_innerCone >= 0 && uSpot_outerCone >= 0 && uSpot_linear >= 0 && uSpot_quadratic >= 0);
+
     glUniform4f(uSpot_ambient, 0.1, 0.1f, 0.1f, 1.0f);
     glUniform4f(uSpot_diffuse, 2.00f, 2.00f, 2.00f, 1.0f);
     glUniform4f(uSpot_specular, 2.00f, 2.00f, 2.00f, 1.0f);
@@ -48,6 +56,9 @@ void initializeSpotLight(GLint uSpot_ambient, GLint uSpot_diffuse, GLint uSpot_s
 
 void setPointLight(GLint uLamp_position, const float viewMatrix[16], float x, float y, float z)
 {
+    assert(uLamp_position >= 0);
+    assert(isValidMatrix16f(viewMatrix));
+
     GLfloat lightW[3] = {x, y, z}; // deine Welt-Pos
     GLfloat lightV[3];
     transform_point_view(lightV, viewMatrix, lightW);
@@ -56,6 +67,11 @@ void setPointLight(GLint uLamp_position, const float viewMatrix[16], float x, fl
 
 void setSpotLight(GLint uSpot_position, GLint uSpot_direction, const float viewMatrix[16], const float eye[3], const float center[3])
 {
+    assert(uSpot_position >= 0 && uSpot_direction >= 0);
+    assert(isValidMatrix16f(viewMatrix));
+    assert(isValidVector3f(eye));
+    assert(isValidVector3f(center));
+
     // 1) Position: Kamera-Position -> View-Space
     GLfloat posV[3];
     transform_point_view(posV, viewMatrix, eye);
@@ -75,7 +91,10 @@ void setSpotLight(GLint uSpot_position, GLint uSpot_direction, const float viewM
 }
 
 void setDirectionalLight(GLint uSun_direction, const float viewMatrix[16], float x, float y, float z)
-{
+{   
+    assert(uSun_direction >= 0);
+    assert(isValidMatrix16f(viewMatrix));
+
     float dirW[3] = {x, y, z};
     norm3f(dirW, dirW); // normalisieren
 

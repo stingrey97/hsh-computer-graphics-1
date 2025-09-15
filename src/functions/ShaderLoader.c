@@ -9,9 +9,13 @@
 // OpenGL
 #include <GL/glew.h>
 
-char* readShaderCode(const char* file_path) {
-    FILE* file = fopen(file_path, "rb");
-    if (!file) {
+char *readShaderCode(const char *file_path)
+{
+    assert(file_path != NULL);
+
+    FILE *file = fopen(file_path, "rb");
+    if (!file)
+    {
         printf("Impossible to open %s. Are you in the right directory?\n", file_path);
         return NULL;
     }
@@ -20,8 +24,9 @@ char* readShaderCode(const char* file_path) {
     long length = ftell(file);
     rewind(file);
 
-    char* code = (char*)malloc(length + 1);
-    if (!code) {
+    char *code = (char *)malloc(length + 1);
+    if (!code)
+    {
         printf("Failed to allocate memory for shader code\n");
         fclose(file);
         return NULL;
@@ -33,15 +38,20 @@ char* readShaderCode(const char* file_path) {
     return code;
 }
 
-GLuint loadShaders(const char* vertex_file_path, const char* fragment_file_path) {
+GLuint loadShaders(const char *vertex_file_path, const char *fragment_file_path)
+{
+    assert(vertex_file_path != NULL && fragment_file_path != NULL);
+
     GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
     GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 
-    char* VertexShaderCode = readShaderCode(vertex_file_path);
-    if (VertexShaderCode == NULL) return 0;
+    char *VertexShaderCode = readShaderCode(vertex_file_path);
+    if (VertexShaderCode == NULL)
+        return 0;
 
-    char* FragmentShaderCode = readShaderCode(fragment_file_path);
-    if (FragmentShaderCode == NULL) {
+    char *FragmentShaderCode = readShaderCode(fragment_file_path);
+    if (FragmentShaderCode == NULL)
+    {
         free(VertexShaderCode);
         return 0;
     }
@@ -51,15 +61,16 @@ GLuint loadShaders(const char* vertex_file_path, const char* fragment_file_path)
 
     // Compile Vertex Shader
     printf("Compiling shader: %s\n", vertex_file_path);
-    const char* VertexSourcePointer = VertexShaderCode;
+    const char *VertexSourcePointer = VertexShaderCode;
     glShaderSource(VertexShaderID, 1, &VertexSourcePointer, NULL);
     glCompileShader(VertexShaderID);
 
     // Check Vertex Shader
     glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
     glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    if (InfoLogLength > 0) {
-        char* VertexShaderErrorMessage = (char*)malloc(InfoLogLength + 1);
+    if (InfoLogLength > 0)
+    {
+        char *VertexShaderErrorMessage = (char *)malloc(InfoLogLength + 1);
         glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, VertexShaderErrorMessage);
         VertexShaderErrorMessage[InfoLogLength] = '\0';
         printf("%s\n", VertexShaderErrorMessage);
@@ -68,15 +79,16 @@ GLuint loadShaders(const char* vertex_file_path, const char* fragment_file_path)
 
     // Compile Fragment Shader
     printf("Compiling shader: %s\n", fragment_file_path);
-    const char* FragmentSourcePointer = FragmentShaderCode;
+    const char *FragmentSourcePointer = FragmentShaderCode;
     glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer, NULL);
     glCompileShader(FragmentShaderID);
 
     // Check Fragment Shader
     glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
     glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    if (InfoLogLength > 0) {
-        char* FragmentShaderErrorMessage = (char*)malloc(InfoLogLength + 1);
+    if (InfoLogLength > 0)
+    {
+        char *FragmentShaderErrorMessage = (char *)malloc(InfoLogLength + 1);
         glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, FragmentShaderErrorMessage);
         FragmentShaderErrorMessage[InfoLogLength] = '\0';
         printf("%s\n", FragmentShaderErrorMessage);
@@ -93,8 +105,9 @@ GLuint loadShaders(const char* vertex_file_path, const char* fragment_file_path)
     // Check the program
     glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
     glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    if (InfoLogLength > 0) {
-        char* ProgramErrorMessage = (char*)malloc(InfoLogLength + 1);
+    if (InfoLogLength > 0)
+    {
+        char *ProgramErrorMessage = (char *)malloc(InfoLogLength + 1);
         glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, ProgramErrorMessage);
         ProgramErrorMessage[InfoLogLength] = '\0';
         printf("%s\n", ProgramErrorMessage);
