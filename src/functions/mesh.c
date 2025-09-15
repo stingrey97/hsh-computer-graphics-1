@@ -11,6 +11,10 @@
 // Own libs
 #include "ObjectLoader.h"
 
+
+// Test
+
+
 void loadMesh(const char* filename, Mesh *out){
     int werte[4];
     // read lines of OBJ4
