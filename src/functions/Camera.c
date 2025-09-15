@@ -51,9 +51,7 @@ void clamp(GLfloat *out, GLfloat value)
 
 void camera(GLfloat *V, GLfloat *P, AppContext *context)
 {
-    assert(V != NULL);
-    assert(P != NULL);
-    assert(context != NULL);
+    assert(V != NULL && P != NULL && context != NULL);
 
     static short isInitialized = 0;
 

@@ -1,11 +1,17 @@
 // Self
 #include "Experiments.h"
 
+// Standard Libs
+#include <assert.h>
+
 // OpenGL
 #include <GLFW/glfw3.h>
 
 void lichtSchalter(GLint sun, GLint lamp, GLint spot, GLFWwindow *window, Status *status)
 {
+    assert(sun >= 0 && lamp >= 0);
+    assert(window != NULL && status != NULL);
+
     // Edge-Detection: nur bei Tastendruck-Kante toggeln
     static int prevf = GLFW_RELEASE;
     static int prev1 = GLFW_RELEASE;
@@ -38,6 +44,9 @@ void lichtSchalter(GLint sun, GLint lamp, GLint spot, GLFWwindow *window, Status
 
 void nebelSchalter(GLint fogEnabled, GLFWwindow *window, Status *status)
 {
+    assert(fogEnabled >= 0);
+    assert(window != NULL && status != NULL);
+
     static int prevN = GLFW_RELEASE;
     int kn = glfwGetKey(window, GLFW_KEY_N);
     if (kn == GLFW_PRESS && prevN == GLFW_RELEASE)

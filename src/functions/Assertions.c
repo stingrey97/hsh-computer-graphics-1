@@ -22,6 +22,12 @@ int isValidVector3f(const GLfloat vec[3])
     return isfinite(vec[0]) && isfinite(vec[1]) && isfinite(vec[2]);
 }
 
+int isValidVector4f(const GLfloat vec[4])
+{
+    assert(vec != NULL);
+    return isfinite(vec[0]) && isfinite(vec[1]) && isfinite(vec[2]) && isfinite(vec[3]);
+}
+
 int isNotZeroVector(const GLfloat vec[3])
 {
     assert(vec != NULL);
@@ -32,6 +38,15 @@ int isValidMatrix16f(const GLfloat *mat)
 {
     assert(mat != NULL);
     for (int i = 0; i < 16; i++)
+        if (!isfinite(mat[i]))
+            return false;
+    return true;
+}
+
+int isValidMatrix9f(const GLfloat *mat)
+{
+    assert(mat != NULL);
+    for (int i = 0; i < 9; i++)
         if (!isfinite(mat[i]))
             return false;
     return true;
