@@ -40,7 +40,7 @@ void init()
 {
     // Initial camera
     setVec3(ctx.eye, 5, 0, 0);
-    setVec3(ctx.look, 0, 0, 0);
+    setVec3(ctx.look, 0, 0, -1);
     setVec3(ctx.up, 0, 1, 0);
     initCamera(&ctx);
 
