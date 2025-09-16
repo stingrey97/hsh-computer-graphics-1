@@ -355,18 +355,10 @@ void lookAt(GLfloat *out, const GLfloat *eye, const GLfloat *look, const GLfloat
     GLfloat n[3], u[3], v[3];
 
     minus3f(n, eye, look);
-    if (len3f(n) < EPS)
-    {
-        printf("ERROR in lookAt(): ||eye-look|| < EPS\n");
-        return;
-    }
+    assert(len3f(n) < EPS);
 
     cross3f(u, up, n);
-    if (len3f(u) < EPS)
-    {
-        printf("ERROR in lookAt(): ||up x n|| < EPS\n");
-        return;
-    }
+    assert(len3f(u) < EPS);
 
     cross3f(v, n, u);
 
