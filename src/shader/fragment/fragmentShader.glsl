@@ -184,38 +184,33 @@ void main(void)
     }
 
     // === Environment mapping (reflection + refraction) ===
-    if (uUseEnvMap == 1) {
-        // View-Space Eingaben
-        vec3 N = normalize(Normal);
-        vec3 V = normalize(-Position);     // von Fragment zur Kamera (0,0,0)
+if (uUseEnvMap == 1) {
+    vec3 N = normalize(normal);      // statt normalize(Normal)
+    vec3 V = normalize(-Position);   // View-Space
 
-        // Richtungen im VIEW-Space berechnen
-        float eta   = 1.0 / max(uIOR, 1e-3);
-        vec3 R_view = reflect(-V, N);
-        vec3 T_view = refract(-V, N, eta);
+    float eta = 1.0 / max(uIOR, 1e-3);
+    vec3 R_view = reflect(-V, N);
+    vec3 T_view = refract(-V, N, eta);
 
-        // In WELT-Space drehen
-        vec3 R_world = normalize(transpose(uViewRot) * R_view);
-        vec3 T_world = normalize(transpose(uViewRot) * T_view);
+    // View->World rotieren (uViewRot ist reine View-Rotation)
+    vec3 R_world = normalize(transpose(uViewRot) * R_view);
+    vec3 T_world = normalize(transpose(uViewRot) * T_view);
 
-        // >>> Achsen-/Handedness-Fix, damit Cubemap-Orientation zur Skybox passt <<<
-        // Häufigster Fall: Z-Achse invertieren
-        R_world.z *= -1.0;
-        T_world.z *= -1.0;
+    // ggf. Achsenanpassung für deine Cubemap
+    R_world.z *= -1.0;
+    T_world.z *= -1.0;
 
-        // Cubemap in Weltkoordinaten samplen
-        vec3 reflCol = texture(uEnvMap, R_world).rgb;
-        vec3 refrCol = texture(uEnvMap, T_world).rgb;
+    vec3 reflCol = texture(uEnvMap, R_world).rgb;
+    vec3 refrCol = texture(uEnvMap, T_world).rgb;
 
-        // Fresnel-Mix
-        vec3 F0 = vec3(0.04);
-        vec3 F  = fresnelSchlick(max(dot(N, V), 0.0), F0);
+    vec3 F0 = vec3(0.04);
+    vec3 F  = fresnelSchlick(max(dot(N, V), 0.0), F0);
 
-        vec3 tint = material.diffuse.rgb;
-        vec3 glassCol = F * reflCol + (1.0 - F) * (refrCol * tint);
+    vec3 tint = material.diffuse.rgb;
+    vec3 glassCol = F * reflCol + (1.0 - F) * (refrCol * tint);
 
-        col = mix(col, glassCol, clamp(uEnvStrength, 0.0, 1.0));
-    }
+    col = mix(col, glassCol, clamp(uEnvStrength, 0.0, 1.0));
+}
 
 if (nebel.enabled == 1) {
         float dView   = length(Position);

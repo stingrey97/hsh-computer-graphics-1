@@ -4,14 +4,20 @@
 // Standard libs
 #include <stdio.h>
 #include <assert.h>
+#include <stdlib.h>
+#include <math.h>
 
 // OpenGL
 #include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
 // Own libs
 #include "Mesh.h"
+#include "Constants.h"
 #include "MathUtils.h"
 #include "Assertions.h"
+
+static GLfloat position[2];
 
 void drawMeshWithModel(const Mesh *m,
                        const float viewMatrix[16], const float projMatrix[16], const float model[16],

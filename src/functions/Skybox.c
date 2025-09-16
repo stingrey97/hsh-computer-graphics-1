@@ -128,8 +128,7 @@ void drawSkybox(AppContext *ctx, GLfloat *V, GLfloat *P)
     glBindTexture(GL_TEXTURE_CUBE_MAP, ctx->skyboxTexture);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
-    // Reset state
-    glUseProgram(0);
+    // Reset state (keep currently bound program unchanged)
     glBindVertexArray(0);
     glDepthFunc(GL_LESS);
     glCullFace(GL_BACK);
