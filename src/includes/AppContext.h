@@ -46,6 +46,9 @@ typedef struct
     // Mesh
     Mesh cube, teapot, column, gras, cottage, tree1, tree2, tree3, slenderman;
 
+    // Environment mapping
+    GLint uEnvMap, uUseEnvMap, uIOR, uEnvStrength, uViewRotLoc;
+
     // Licht Status
     Status lightStatus;
 

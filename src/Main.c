@@ -125,6 +125,25 @@ int init()
     glUseProgram(ctx.skyboxProgramID);
     glUniform1i(glGetUniformLocation(ctx.skyboxProgramID, "skybox"), 0);
 
+    // Env map binding for main program
+    glUseProgram(ctx.programID);
+    ctx.uEnvMap = glGetUniformLocation(ctx.programID, "uEnvMap");
+    ctx.uUseEnvMap = glGetUniformLocation(ctx.programID, "uUseEnvMap");
+    ctx.uIOR = glGetUniformLocation(ctx.programID, "uIOR");
+    ctx.uEnvStrength = glGetUniformLocation(ctx.programID, "uEnvStrength");
+    ctx.uViewRotLoc = glGetUniformLocation(ctx.programID, "uViewRot");
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, ctx.skyboxTexture);
+    glUniform1i(ctx.uEnvMap, 1);
+
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+    // defaults
+    glUniform1f(ctx.uIOR, 1.5f);
+    glUniform1f(ctx.uEnvStrength, 0.85f);
+    glUniform1i(ctx.uUseEnvMap, 0);
+
     return 0;
 }
 
@@ -137,6 +156,15 @@ void draw()
     GLfloat V[16];
     GLfloat P[16];
     camera(V, P, &ctx);
+
+    // viewMatrix ist deine 4x4-View-Matrix (column-major, OpenGL-konform)
+    GLfloat viewRot[9] = {
+        V[0], V[1], V[2],
+        V[4], V[5], V[6],
+        V[8], V[9], V[10]};
+
+    // Achtung: Das sind die oberen linken 3x3-Elemente ohne Translation.
+    glUniformMatrix3fv(ctx.uViewRotLoc, 1, GL_FALSE, viewRot);
 
     lichtSchalter(ctx.uSun_enabled, ctx.uLamp_enabled, ctx.uSpot_enabled, ctx.window, &ctx.lightStatus);
     nebelSchalter(ctx.uFogEnabled, ctx.window, &ctx.lightStatus);
@@ -192,11 +220,13 @@ void draw()
     // TODO
 
     // 7) Glaswürfel
+    glUniform1i(ctx.uUseEnvMap, 1);
     identity(M);
     translate(M, M, (GLfloat[]){0.0f, 1.42f, 0.0f});
     scale(M, M, (GLfloat[]){0.24f, 0.24f, 0.24f});
     setMaterialGlass(&ctx, 0.18f);
     drawtransparentMeshWithModel(&ctx.cube, V, P, M, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc);
+    glUniform1i(ctx.uUseEnvMap, 0);
 
     // Skybox
     drawSkybox(&ctx, V, P);
