@@ -36,8 +36,37 @@ void framebuffer_size_callback(GLFWwindow *window, int cb_width, int cb_height)
     glViewport(0, 0, cb_width, cb_height);
 }
 
-void init()
+int init()
 {
+    ctx.width = INIT_WINDOW_WIDTH;
+    ctx.height = INIT_WINDOW_HEIGHT;
+
+    glfwInit();
+
+    glfwWindowHint(GLFW_SAMPLES, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_DEPTH_BITS, 32);
+
+    ctx.window = glfwCreateWindow(INIT_WINDOW_WIDTH, INIT_WINDOW_HEIGHT, INIT_WINDOW_TITLE, NULL, NULL);
+
+    if (!ctx.window)
+    {
+        printf("Error creating window\n");
+        glfwTerminate();
+        return -1;
+    }
+
+    glfwSetFramebufferSizeCallback(ctx.window, framebuffer_size_callback);
+    int fbw, fbh;
+    glfwGetFramebufferSize(ctx.window, &fbw, &fbh);
+    glViewport(0, 0, fbw, fbh);
+
+    glfwMakeContextCurrent(ctx.window);
+    glewInit();
+
     // Initial camera
     setVec3(ctx.eye, 1, 0, 0);
     setVec3(ctx.look, 0, 0, 0);
@@ -95,6 +124,8 @@ void init()
     initSkybox(&ctx);
     glUseProgram(ctx.skyboxProgramID);
     glUniform1i(glGetUniformLocation(ctx.skyboxProgramID, "skybox"), 0);
+
+    return 0;
 }
 
 void draw()
@@ -168,62 +199,16 @@ void draw()
     drawtransparentMeshWithModel(&ctx.cube, V, P, M, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc);
 
     // Skybox
-    glCullFace(GL_FRONT);
-    glUseProgram(ctx.skyboxProgramID);
-    glDepthFunc(GL_LEQUAL);
-    GLfloat VP[16];
-    GLfloat V_noT[16];
-    memcpy(V_noT, V, sizeof(V_noT));
-    V_noT[12] = V_noT[13] = V_noT[14] = 0.0f;
-    mat4f_mul_mat4f(VP, P, V_noT);
-    glUniformMatrix4fv(glGetUniformLocation(ctx.skyboxProgramID, "VP"), 1, GL_FALSE, VP);
-
-    glBindVertexArray(ctx.skyboxVAO);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, ctx.skyboxTexture);
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
-    glCullFace(GL_BACK);
-
-    // Switch back to the normal depth functionx
-    glDepthFunc(GL_LESS);
+    drawSkybox(&ctx, V, P);
 }
 
 int main(void)
 {
-    chdir("src"); // For different entry-points
-    errno = 0;    // Reset if pwd was already src
+    // For different entry-points
+    chdir("src");
+    errno = 0;
 
-    ctx.width = INIT_WINDOW_WIDTH;
-    ctx.height = INIT_WINDOW_HEIGHT;
-
-    glfwInit();
-
-    glfwWindowHint(GLFW_SAMPLES, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_DEPTH_BITS, 32);
-
-    ctx.window = glfwCreateWindow(INIT_WINDOW_WIDTH, INIT_WINDOW_HEIGHT, INIT_WINDOW_TITLE, NULL, NULL);
-
-    if (!ctx.window)
-    {
-        printf("Error creating window\n");
-        glfwTerminate();
-        return -1;
-    }
-
-    glfwSetFramebufferSizeCallback(ctx.window, framebuffer_size_callback);
-    int fbw, fbh;
-    glfwGetFramebufferSize(ctx.window, &fbw, &fbh);
-    glViewport(0, 0, fbw, fbh);
-
-    glfwMakeContextCurrent(ctx.window);
-    glewInit();
-
-    init();
+    assert(init() == 0);
 
     while (!glfwWindowShouldClose(ctx.window))
     {
@@ -233,5 +218,6 @@ int main(void)
     }
 
     glfwTerminate();
+
     return 0;
 }

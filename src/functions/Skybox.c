@@ -4,12 +4,14 @@
 // Standard libs
 #include <GL/glew.h>
 #include <assert.h>
+#include <string.h>
 
 // Own libs
 #include "Constants.h"
 #include "AppContext.h"
 #include "TextureLoader.h"
 #include "ShaderLoader.h"
+#include "MathUtils.h"
 
 void initSkybox(AppContext *context)
 {
@@ -21,7 +23,7 @@ void initSkybox(AppContext *context)
             -1.0f, -1.0f, 1.0f,
             1.0f, -1.0f, 1.0f,
             1.0f, -1.0f, -1.0f,
-            -1.0f, -1.0f, -1.0f
+            -1.0f, -1.0f, -1.0f,
             -1.0f, 1.0f, 1.0f,
             1.0f, 1.0f, 1.0f,
             1.0f, 1.0f, -1.0f,
@@ -105,4 +107,30 @@ void initSkybox(AppContext *context)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+void drawSkybox(AppContext *ctx, GLfloat *V, GLfloat *P)
+{
+    glUseProgram(ctx->skyboxProgramID);
+
+    glCullFace(GL_FRONT);
+    glDepthFunc(GL_LEQUAL);
+    GLfloat VP[16];
+    GLfloat V_noT[16];
+    memcpy(V_noT, V, sizeof(V_noT));
+    V_noT[12] = V_noT[13] = V_noT[14] = 0.0f;
+    mat4f_mul_mat4f(VP, P, V_noT);
+
+    glUniformMatrix4fv(glGetUniformLocation(ctx->skyboxProgramID, "VP"), 1, GL_FALSE, VP);
+
+    glBindVertexArray(ctx->skyboxVAO);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, ctx->skyboxTexture);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+    // Reset state
+    glUseProgram(0);
+    glBindVertexArray(0);
+    glDepthFunc(GL_LESS);
+    glCullFace(GL_BACK);
 }
