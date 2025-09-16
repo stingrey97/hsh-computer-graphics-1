@@ -44,13 +44,26 @@ typedef struct
     GLint MVLoc, MVPLoc, NormalMLoc;
 
     // Mesh
-    Mesh cube, teapot, column, gras, cottage, tree1, tree2, tree3, slenderman;
+    Mesh cube, teapot, column, gras, cottage, baumstamm1, baumstamm2, baumstamm3, slenderman, laterne;
 
     // Environment mapping
     GLint uEnvMap, uUseEnvMap, uIOR, uEnvStrength, uViewRotLoc;
 
+    // Texture uniform
+    GLint albedoLoc, normalLoc, roughnessLoc, uvScale;
+
+    // Textures
+    GLuint albedoCottage, normalCottage, roughnessCottage;
+    GLuint albedoColumn, normalColumn, roughColumn;
+    GLuint albedoGras, normalGras, roughnessGras;
+    GLuint albedoBaum1und2, albedoBaum3, normalBaum, roughBaum;
+    GLuint albedoGlas, normalGlas, roughGlas;
+    GLuint albedoTeapot;
+    GLuint albedoSlenderman, normalSlenderman, roughSlenderman;
+    GLuint albedoLaterne, normalLaterne, roughLaterne;
+
     // Licht Status
-    Status lightStatus;
+    Status status;
 
 } AppContext;
 

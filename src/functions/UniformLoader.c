@@ -58,4 +58,10 @@ void loadUniforms(AppContext *ctx)
     ctx->uFogColor = glGetUniformLocation(ctx->programID, "nebel.color");
     ctx->uFogDensity = glGetUniformLocation(ctx->programID, "nebel.density");
     ctx->uFogEnabled = glGetUniformLocation(ctx->programID, "nebel.enabled");
+
+    // Textur
+    ctx->albedoLoc = glGetUniformLocation(ctx->programID, "uAlbedo");
+    ctx->normalLoc = glGetUniformLocation(ctx->programID, "uNormalMap");
+    ctx->roughnessLoc = glGetUniformLocation(ctx->programID, "uRoughness");
+    ctx->uvScale = glGetUniformLocation(ctx->programID, "uvScale");
 }

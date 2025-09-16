@@ -11,10 +11,51 @@
 // Own libs
 #include "ImageLoader.h"
 
-GLuint loadTexture2D(void)
+GLuint loadTexture2D(const char *path, int useRGB)
 {
-    // TODO: implement 2D texture loader
-    return 0;
+    int textureWidth = 0;
+    int textureHeight = 0;
+    int bitsPerPixel = 0;
+    stbi_set_flip_vertically_on_load(1);
+    unsigned char *textureBuffer = stbi_load(path, &textureWidth, &textureHeight, &bitsPerPixel, 4);
+    if (!textureBuffer)
+    {
+        printf("stbi_load FAILED for '%s' : %s\n", path, stbi_failure_reason());
+        return 0; // invalid texture id
+    }
+    printf("Loaded '%s'  %dx%d  channels=%d\n", path, textureWidth, textureHeight, bitsPerPixel);
+
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    GLint internalFmt;
+    if (useRGB)
+    {
+        internalFmt = GL_SRGB8_ALPHA8;
+    }
+    else
+    {
+        internalFmt = GL_RGBA8;
+    }
+    glTexImage2D(GL_TEXTURE_2D, 0, internalFmt, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureBuffer);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    if (textureBuffer)
+    {
+        stbi_image_free(textureBuffer);
+    }
+
+    return textureID;
 }
 
 GLuint loadCubemap(const char *faces[6])

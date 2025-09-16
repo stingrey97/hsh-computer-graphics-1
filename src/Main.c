@@ -26,13 +26,14 @@
 #include "Skybox.h"
 #include "Materials.h"
 #include "UniformLoader.h"
+#include "TextureLoader.h"
 
 static AppContext ctx;
 
 void framebuffer_size_callback(GLFWwindow *window, int cb_width, int cb_height)
 {
-    assert(window != NULL);
-    assert(cb_width > 0 && cb_height > 0);
+    context.height = cb_height;
+    context.width = cb_width;
     glViewport(0, 0, cb_width, cb_height);
 }
 
@@ -62,6 +63,8 @@ int init()
     glfwSetFramebufferSizeCallback(ctx.window, framebuffer_size_callback);
     int fbw, fbh;
     glfwGetFramebufferSize(ctx.window, &fbw, &fbh);
+    context.width = fbw;
+    context.height = fbh;
     glViewport(0, 0, fbw, fbh);
 
     glfwMakeContextCurrent(ctx.window);
@@ -101,15 +104,16 @@ int init()
     initializeSpotLight(ctx.uSpot_ambient, ctx.uSpot_diffuse, ctx.uSpot_specular, ctx.uSpot_innerCone, ctx.uSpot_outerCone, ctx.uSpot_linear, ctx.uSpot_quadratic);
 
     // Load meshes in scene
-    loadMesh("objects/teapot.obj", &ctx.teapot);
-    loadMesh("objects/column.obj", &ctx.column);
-    loadMesh("objects/cube.obj", &ctx.cube);
-    loadMesh("objects/gras.obj", &ctx.gras);
-    loadMesh("objects/cottage_blender.obj", &ctx.cottage);
-    loadMesh("objects/Tree1.obj", &ctx.tree1);
-    loadMesh("objects/Tree2.obj", &ctx.tree2);
-    loadMesh("objects/Tree3.obj", &ctx.tree3);
-    loadMesh("objects/slenderman.obj", &ctx.slenderman);
+    loadMesh("objects/teapot.obj", &teapot);
+    loadMesh("objects/column.obj", &column);
+    loadMesh("objects/cube.obj", &cube);
+    loadMesh("objects/gras.obj", &gras);
+    loadMesh("objects/cottage_blender.obj", &cottage);
+    loadMesh("objects/slenderman.obj", &slenderman);
+    loadMesh("objects/tree/tree1/Baumstamm1.obj", &baumstamm1);
+    loadMesh("objects/tree/tree2/Baumstamm2.obj", &baumstamm2);
+    loadMesh("objects/tree/tree3/Baumstamm3.obj", &baumstamm3);
+    loadMesh("objects/StreetLamp.obj", &laterne);
 
     // Init OpenGL
     glEnable(GL_BLEND);
@@ -144,6 +148,43 @@ int init()
     glUniform1f(ctx.uEnvStrength, 0.85f);
     glUniform1i(ctx.uUseEnvMap, 0);
 
+    // Texturkanäle
+    glUniform1i(albedoLoc, 0);
+    glUniform1i(normalLoc, 1);
+    glUniform1i(roughnessLoc, 2);
+
+    // Texturen laden
+    // Cottage
+    ctx.albedoCottage = loadTexture2D("textures/cottage/cottage_diffuse.png", 1);
+    ctx.normalCottage = loadTexture2D("textures/cottage/cottage_normal.png", 0);
+    // gras
+    ctx.albedoGras = loadTexture2D("textures/gras/grass1-albedo3.png", 1);
+    ctx.normalGras = loadTexture2D("textures/gras/grass1-normal1-ogl.png", 0);
+    ctx.roughnessGras = loadTexture2D("textures/gras/grass1-rough.png", 0);
+    // Bäume
+    ctx.albedoBaum1und2 = loadTexture2D("textures/trees/tree1/BarkDecidious0143_5_S.jpg", 1);
+    ctx.albedoBaum3 = loadTexture2D("textures/trees/tree3/BarkDecidious0194_7_S.jpg", 1);
+    ctx.normalBaum = loadTexture2D("textures/trees/tree1/tree_bark_normal_ogl.png", 0);
+    ctx.roughBaum = loadTexture2D("textures/trees/tree1/tree_bark_roughness.png", 0);
+    // Glas
+    ctx.albedoGlas = loadTexture2D("textures/glas/glass_albedo_red_a18.png", 1);
+    ctx.normalGlas = loadTexture2D("textures/glas/glass_normal_flat_ogl.png", 0);
+    ctx.roughGlas = loadTexture2D("textures/glas/glass_roughness_glossy_012.png", 0);
+    // Coulmn
+    ctx.albedoColumn = loadTexture2D("textures/column/Column_Albedo_fixed.png", 1);
+    ctx.normalColumn = loadTexture2D("textures/column/column_normal.002.png", 0);
+    ctx.roughColumn = loadTexture2D("textures/column/column_roughness.png", 0);
+    // Teapot
+    ctx.albedoTeapot = loadTexture2D("textures/teapot/1df5a76d-fb2d-45d4-ae28-7265782ed03b.png", 1);
+    // Slenderman
+    ctx.albedoSlenderman = loadTexture2D("", 1);
+    ctx.normalSlenderman = loadTexture2D("", 0);
+    ctx.roughSlenderman = loadTexture2D("", 0);
+    // Laterne
+    ctx.albedoLaterne = loadTexture2D("", 1);
+    ctx.normalLaterne = loadTexture2D("", 0);
+    ctx.roughLaterne = loadTexture2D("", 0);
+
     return 0;
 }
 
@@ -168,6 +209,7 @@ void draw()
 
     lichtSchalter(ctx.uSun_enabled, ctx.uLamp_enabled, ctx.uSpot_enabled, ctx.window, &ctx.lightStatus);
     nebelSchalter(ctx.uFogEnabled, ctx.window, &ctx.lightStatus);
+    vollbildschalter(context.window, &status);
 
     // Richtungslicht an die Kamera setzten
     setDirectionalLight(ctx.uSun_direction, V, 1.0f, -1.0f, -1.0f);
@@ -176,60 +218,109 @@ void draw()
     setSpotLight(ctx.uSpot_position, ctx.uSpot_direction, V, ctx.eye, ctx.look);
 
     // Punktlicht-Position JEDES Frame in View-Space updaten
-    setPointLight(ctx.uLamp_position, V, 2.0f, 2.0f, 5.0f);
+    setPointLight(ctx.uLamp_position, V, 0.0f, 5.0f, 0.0f);
+
+    GLfloat M[16];
 
     // 1) Graue Säule (gestreckter Cube)
-    GLfloat M[16];
-    identity(M);
-    translate(M, M, (GLfloat[]){0.0f, -0.01f, 0.0f});
-    scale(M, M, (GLfloat[]){0.42f, 0.45f, 0.42f});
-    setMaterialGrayPillar(&ctx);
-    drawMeshWithModel(&ctx.column, V, P, M, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc);
-
-    // 2) Golderner Teapot
-    identity(M);
-    translate(M, M, (GLfloat[]){0.0f, 1.6f, 0.0f});
-    scale(M, M, (GLfloat[]){0.14f, 0.14f, 0.14f});
-    setMaterialPolishedGold(&ctx);
-    drawMeshWithModel(&ctx.teapot, V, P, M, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc);
-
-    // 3) Gras
-    identity(M);
-    translate(M, M, (GLfloat[]){0.0f, -0.01f, 0.0f});
-    scale(M, M, (GLfloat[]){0.42f, 0.45f, 0.42f});
-    setMaterialGrass(&ctx);
-    drawMeshWithModel(&ctx.gras, V, P, M, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc);
-
-    // 4) Cottage
+    // Cottage
+    glUniform2f(uvScale, 1.0f, 1.0f);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, albedoCottage);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normalCottage);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, roughnessCottage);
     identity(M);
     translate(M, M, (GLfloat[]){25.0f, 0.0f, -15.0f});
     rotateY(M, M, 20);
     scale(M, M, (GLfloat[]){0.5f, 0.5f, 0.5f});
-    setMaterialWood(&ctx);
-    drawMeshWithModel(&ctx.cottage, V, P, M, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc);
+    setMaterialWood();
+    drawMeshWithModel(&cottage, V, P, M, MVLoc, MVPLoc, NormalMLoc);
 
-    // 5) Slenderman
+    // Gras
+    glUniform2f(uvScale, 100.0f, 100.0f);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, albedoGras);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normalGras);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, roughnessGras);
     identity(M);
-    translate(M, M, (GLfloat[]){1.4f, 0.0f, -3.2f});
-    rotateY(M, M, 180);
-    scale(M, M, (GLfloat[]){0.9f, 0.9f, 0.9f});
-    setMaterialSlenderman(&ctx);
-    drawMeshWithModel(&ctx.slenderman, V, P, M, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc);
+    translate(M, M, (GLfloat[]){0.0f, -0.01f, 0.0f});
+    scale(M, M, (GLfloat[]){0.42f, 0.45f, 0.42f});
+    setMaterialGrass();
+    drawMeshWithModel(&gras, V, P, M, MVLoc, MVPLoc, NormalMLoc);
 
-    // 6) Bäume
-    // TODO
+    // Graue Säule
+    glUniform2f(uvScale, 1.0f, 1.0f);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, albedoColumn);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normalColumn);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, roughColumn);
+    identity(M);
+    translate(M, M, (GLfloat[]){0.0f, -0.01f, 0.0f});
+    scale(M, M, (GLfloat[]){0.42f, 0.45f, 0.42f});
+    setMaterialGrayPillar();
+    drawMeshWithModel(&column, V, P, M, MVLoc, MVPLoc, NormalMLoc);
 
-    // 7) Glaswürfel
-    glUniform1i(ctx.uUseEnvMap, 1);
+    // Laterne
+    glUniform2f(uvScale, 1.0f, 1.0f);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, albedoLaterne);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normalLaterne);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, roughLaterne);
+    identity(M);
+    translate(M, M, (GLfloat[]){-3.5f, 0.0f, 0.0f});
+    scale(M, M, (GLfloat[]){0.5f, 0.5f, 0.5f});
+    setMaterialGrayPillar();
+    drawMeshWithModel(&laterne, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+
+    // Golderner Teapot
+    glUniform2f(uvScale, 1.0f, 1.0f);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, albedoTeapot);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normalGlas);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, roughGlas);
+    identity(M);
+    translate(M, M, (GLfloat[]){0.0f, 1.6f, 0.0f});
+    scale(M, M, (GLfloat[]){0.14f, 0.14f, 0.14f});
+    setMaterialPolishedGold();
+    drawMeshWithModel(&teapot, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+
+    // Slenderman
+    setMaterialGrayPillar();
+    drawSlenderman(M, V, P, MVLoc, MVPLoc, NormalMLoc, albedoSlenderman, normalSlenderman, roughSlenderman, &slenderman, uvScale, context.eye);
+
+    // Forrest
+    setMaterialWood();
+    drawForrest(80, M, V, P, MVLoc, MVPLoc, NormalMLoc, albedoBaum1und2, albedoBaum3, normalBaum, roughBaum,
+                &baumstamm1, &baumstamm2, &baumstamm3, uvScale);
+    // Skybox
+    drawSkybox(&ctx, V, P);
+
+    // Glaswürfel
+    glUniform1i(ctx.uEnvMap, 1);
+    glUseProgram(context.programID);
+    glUniform2f(uvScale, 1.0f, 1.0f);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, albedoGlas);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normalGlas);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, roughGlas);
     identity(M);
     translate(M, M, (GLfloat[]){0.0f, 1.42f, 0.0f});
     scale(M, M, (GLfloat[]){0.24f, 0.24f, 0.24f});
-    setMaterialGlass(&ctx, 0.18f);
-    drawtransparentMeshWithModel(&ctx.cube, V, P, M, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc);
-    glUniform1i(ctx.uUseEnvMap, 0);
-
-    // Skybox
-    drawSkybox(&ctx, V, P);
+    setMaterialGlass(0.18f);
+    drawtransparentMeshWithModel(&cube, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+    glUniform1i(ctx.uEnvMap, 0);
 }
 
 int main(void)

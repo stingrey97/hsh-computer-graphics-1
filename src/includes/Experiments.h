@@ -10,10 +10,12 @@ typedef struct
     int lamp;
     int spot;
     int nebel;
+    int vollbild;
 
 } Status;
 
 extern void lichtSchalter(GLint sun, GLint lamp, GLint spot, GLFWwindow *window, Status *status);
 extern void nebelSchalter(GLint fogEnabled, GLFWwindow *window, Status *status);
+extern void vollbildschalter(GLFWwindow *window, Status *status);
 
 #endif
