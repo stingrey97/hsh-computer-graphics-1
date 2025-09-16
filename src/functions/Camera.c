@@ -15,12 +15,6 @@
 #include "AppContext.h"
 #include "MathUtils.h"
 
-static double lastTime;
-
-static GLfloat INITIAL_EYE[3];
-static GLfloat INITIAL_LOOK[3];
-static GLfloat INITIAL_UP[3];
-
 void initCamera(AppContext *context)
 {
     assert(context->window != NULL);
@@ -31,12 +25,10 @@ void initCamera(AppContext *context)
     glfwSetCursorPos(context->window, context->width / 2, context->height / 2);
     // clear Events
     glfwPollEvents();
-    // get lastTime
-    lastTime = glfwGetTime();
 
-    copyVec3(INITIAL_EYE, context->eye);
-    copyVec3(INITIAL_LOOK, context->look);
-    copyVec3(INITIAL_UP, context->up);
+    copyVec3(context->INITIAL_EYE, context->eye);
+    copyVec3(context->INITIAL_LOOK, context->look);
+    copyVec3(context->INITIAL_UP, context->up);
 }
 
 void clamp(GLfloat *out, GLfloat value)
@@ -57,10 +49,12 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
     static double xMousePos, yMousePos;
     static GLfloat horizontalAngle = 0.f;
     static GLfloat verticalAngle = 0.f;
+    static double lastTime = 0;
 
     // Maus-Reset beim ersten Aufruf (verhindert großen ersten Delta-Sprung)
     if (isInitialized == 0)
     {
+        lastTime = glfwGetTime();
         glfwSetCursorPos(context->window, context->width / 2, context->height / 2);
         xMousePos = context->width * 0.5;
         yMousePos = context->height * 0.5;
@@ -86,12 +80,12 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
     // Einmalige Initialisierung: Eye/Up übernehmen; optional Startblick aus INITIAL_LOOK ableiten
     if (isInitialized == 0)
     {
-        copyVec3(context->eye, INITIAL_EYE);
-        copyVec3(context->up, INITIAL_UP);
+        copyVec3(context->eye, context->INITIAL_EYE);
+        copyVec3(context->up, context->INITIAL_UP);
 
         // Falls INITIAL_LOOK als Punkt (Center) gesetzt ist, Richtungswinkel daraus ableiten
         GLfloat initDir[3];
-        minus3f(initDir, INITIAL_LOOK, INITIAL_EYE); // dir ~ look - eye
+        minus3f(initDir, context->INITIAL_LOOK, context->INITIAL_EYE); // dir ~ look - eye
         if (len3f(initDir) > EPS)
         {
             norm3f(initDir, initDir);
