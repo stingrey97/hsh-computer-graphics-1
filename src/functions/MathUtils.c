@@ -119,7 +119,7 @@ void norm3f(GLfloat *out, const GLfloat *vec)
 {
     assert(out != NULL && vec != NULL);
     isValidVector3f(vec);
-    
+
     GLfloat len = len3f(vec);
 
     if (len > EPS)
@@ -169,9 +169,17 @@ void printVecN(const GLfloat *vec, const int n)
     printf("\n");
 }
 
-void printVec3(const GLfloat *vec) { assert(vec != NULL); printVecN(vec, 3); }
+void printVec3(const GLfloat *vec)
+{
+    assert(vec != NULL);
+    printVecN(vec, 3);
+}
 
-void printVec4(const GLfloat *vec) { assert(vec != NULL); printVecN(vec, 4); }
+void printVec4(const GLfloat *vec)
+{
+    assert(vec != NULL);
+    printVecN(vec, 4);
+}
 
 void printMat4(const GLfloat *mat)
 {
@@ -351,26 +359,30 @@ void lookAt(GLfloat *out, const GLfloat *eye, const GLfloat *look, const GLfloat
 
     GLfloat n[3], u[3], v[3];
 
+    // 1) n = Eye - Look
     minus3f(n, eye, look);
-    assert(len3f(n) < EPS);
-
-    cross3f(u, up, n);
-    assert(len3f(u) < EPS);
-
-    cross3f(v, n, u);
-
+    assert(len3f(n) > EPS); // Eye != Look
     norm3f(n, n);
+
+    // 2) u = Up × n
+    cross3f(u, up, n);
+    assert(len3f(u) > EPS); // Up darf nicht parallel zu n sein
     norm3f(u, u);
+
+    // 3) v = n × u
+    cross3f(v, n, u);
     norm3f(v, v);
 
+    // 4) Translation t = -(u·Eye, v·Eye, n·Eye)
     GLfloat tx, ty, tz;
     dot3f(&tx, u, eye);
-    tx = -tx;
     dot3f(&ty, v, eye);
-    ty = -ty;
     dot3f(&tz, n, eye);
-    tz = -tz;
+    tx *= -1;
+    ty *= -1;
+    tz *= -1;
 
+    // 5) Matrix in column-major-Layout (OpenGL-Konvention)
     out[0] = u[0];
     out[4] = u[1];
     out[8] = u[2];
@@ -383,30 +395,34 @@ void lookAt(GLfloat *out, const GLfloat *eye, const GLfloat *look, const GLfloat
     out[6] = n[1];
     out[10] = n[2];
     out[14] = tz;
-    out[3] = 0.0f;
-    out[7] = 0.0f;
-    out[11] = 0.0f;
-    out[15] = 1.0f;
+    out[3] = 0.f;
+    out[7] = 0.f;
+    out[11] = 0.f;
+    out[15] = 1.f;
 }
 
-void perspective(GLfloat *out, GLfloat const fovy, GLfloat const aspect, GLfloat const near, GLfloat const far)
+void perspective(GLfloat *out, GLfloat fovy, GLfloat aspect, GLfloat near, GLfloat far)
 {
-    assert(out != NULL);
-    assert(fovy > 0.f && fovy <= 180.f);
-    assert(aspect > 0 && near > 0 && far > near);
+    assert(out);
+    assert(fovy > 0.f && fovy < 180.f);
+    assert(aspect > 0.f && near > 0.f && far > near);
 
-    const GLfloat fovy_rad = deg2radf(fovy), t = near * tanf(fovy_rad / 2.0f), b = -t, r = t * aspect, l = -r;
+    const GLfloat a = deg2radf(fovy);
+    const GLfloat t = near * tanf(a * 0.5f);
+    const GLfloat b = -t;
+    const GLfloat r = t * aspect;
+    const GLfloat l = -r;
 
-    GLfloat M[16] = {0.0f};
+    GLfloat M[16] = {0};
 
-    M[0] = 2.0f / (r - l);
-    M[5] = 2.0f / (t - b);
-    M[8] = (1.0f / near) * ((r + l) / (r - l));
-    M[9] = (1.0f / near) * ((t + b) / (t - b));
-    M[10] = -((1.0f / near) * ((far + near) / (far - near)));
-    M[11] = -(1.0f / near);
-    M[14] = -((2.0f * far) / (far - near));
-    M[15] = 0.0f;
+    M[0] = (2.f * near) / (r - l);
+    M[5] = (2.f * near) / (t - b);
+    M[8] = (r + l) / (r - l);
+    M[9] = (t + b) / (t - b);
+    M[10] = -(far + near) / (far - near);
+    M[11] = -1.f;
+    M[14] = -(2.f * far * near) / (far - near);
+    M[15] = 0;
 
     memcpy(out, M, sizeof(M));
 }

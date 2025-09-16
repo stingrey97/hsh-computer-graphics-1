@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-// OepnGL
+// OpenGL
 #include <GL/glew.h>
 
 typedef struct

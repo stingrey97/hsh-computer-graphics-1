@@ -39,8 +39,8 @@ void framebuffer_size_callback(GLFWwindow *window, int cb_width, int cb_height)
 void init()
 {
     // Initial camera
-    setVec3(ctx.eye, 5, 0, 0);
-    setVec3(ctx.look, 0, 0, -1);
+    setVec3(ctx.eye, 1, 0, 0);
+    setVec3(ctx.look, 0, 0, 0);
     setVec3(ctx.up, 0, 1, 0);
     initCamera(&ctx);
 

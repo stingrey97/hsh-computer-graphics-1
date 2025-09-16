@@ -1,7 +1,7 @@
 // Self
 #include "Experiments.h"
 
-// Standard Libs
+// Standard libs
 #include <assert.h>
 
 // OpenGL

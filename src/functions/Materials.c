@@ -1,7 +1,7 @@
 // Self
 #include "Materials.h"
 
-// Standard Libs
+// Standard libs
 #include <assert.h>
 
 // OpenGL
