@@ -47,7 +47,7 @@ void mat4f_mul_vec4f(GLfloat *out, const GLfloat *mat, const GLfloat *vec)
 {
     assert(out != NULL && mat != NULL && vec != NULL);
     assert(isValidMatrix16f(mat));
-    assert(isValidVector3f(vec));
+    assert(isValidVector4f(vec));
 
     for (int i = 0; i < 4; i++)
     {
@@ -223,11 +223,8 @@ void mat3_inverse_transpose(GLfloat out[9], const GLfloat m[9])
 
     float det = a * A + b * B + c * C;
 
-    // Falls die inverse nicht möglich ist
-    if (fabsf(det) < 1e-12f)
-    {
-        det = 1.0f;
-    }
+    assert(fabsf(det) >= EPS);
+
     float invDet = 1.0f / det;
 
     out[0] = A * invDet;
