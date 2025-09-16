@@ -64,4 +64,11 @@ void loadUniforms(AppContext *ctx)
     ctx->normalLoc = glGetUniformLocation(ctx->programID, "uNormalMap");
     ctx->roughnessLoc = glGetUniformLocation(ctx->programID, "uRoughness");
     ctx->uvScale = glGetUniformLocation(ctx->programID, "uvScale");
+
+    // nach glUseProgram(context.programID);
+    ctx->uEnvMap = glGetUniformLocation(ctx->programID, "uEnvMap");
+    ctx->uUseEnvMap = glGetUniformLocation(ctx->programID, "uUseEnvMap");
+    ctx->uIOR = glGetUniformLocation(ctx->programID, "uIOR");
+    ctx->uEnvStrength = glGetUniformLocation(ctx->programID, "uEnvStrength");
+    ctx->uViewRotLoc = glGetUniformLocation(ctx->programID, "uViewRot");
 }

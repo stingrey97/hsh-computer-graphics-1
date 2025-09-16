@@ -299,7 +299,6 @@ void rotateX(GLfloat *out, const GLfloat *in, float angle_deg)
 {
     assert(out != NULL && in != NULL);
     assert(isValidMatrix16f(in));
-    assert(angle_deg >= 0.f && angle_deg <= 360.f);
 
     const GLfloat a = deg2radf(angle_deg);
     const GLfloat c = cosf(a), s = sinf(a);
@@ -318,7 +317,6 @@ void rotateY(GLfloat *out, const GLfloat *in, float angle_deg)
 {
     assert(out != NULL && in != NULL);
     assert(isValidMatrix16f(in));
-    assert(angle_deg >= 0.f && angle_deg <= 360.f);
 
     const GLfloat a = deg2radf(angle_deg);
     const GLfloat c = cosf(a), s = sinf(a);
@@ -337,7 +335,6 @@ void rotateZ(GLfloat *out, const GLfloat *in, float angle_deg)
 {
     assert(out != NULL && in != NULL);
     assert(isValidMatrix16f(in));
-    assert(angle_deg >= 0.f && angle_deg <= 360.f);
 
     const GLfloat a = deg2radf(angle_deg);
     const GLfloat c = cosf(a), s = sinf(a);

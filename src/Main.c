@@ -43,7 +43,6 @@ int init()
     ctx.height = INIT_WINDOW_HEIGHT;
 
     glfwInit();
-
     glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -52,7 +51,6 @@ int init()
     glfwWindowHint(GLFW_DEPTH_BITS, 32);
 
     ctx.window = glfwCreateWindow(INIT_WINDOW_WIDTH, INIT_WINDOW_HEIGHT, INIT_WINDOW_TITLE, NULL, NULL);
-
     if (!ctx.window)
     {
         printf("Error creating window\n");
@@ -70,40 +68,32 @@ int init()
     glfwMakeContextCurrent(ctx.window);
     glewInit();
 
-    // Initial camera
+    // Kamera
     setVec3(ctx.eye, 1, 0, 0);
     setVec3(ctx.look, 0, 0, 0);
     setVec3(ctx.up, 0, 1, 0);
     initCamera(&ctx);
 
-    // Load shader program
+    // Shader laden + aktivieren
     const char *vertexPath = "shader/vertex/vertexShader.glsl";
     const char *fragmentPath = "shader/fragment/fragmentShader.glsl";
     ctx.programID = loadShaders(vertexPath, fragmentPath);
     glUseProgram(ctx.programID);
 
-    // Load Uniforms
+    // Uniform-Locations (Hauptprogramm)
     loadUniforms(&ctx);
 
-    // Toggle lights
+    // Licht/Nebel Defaults
     glUniform1i(ctx.uSun_enabled, 1);
     glUniform1i(ctx.uLamp_enabled, 1);
     glUniform1i(ctx.uSpot_enabled, 1);
-
-    // Toggle fog
     initializeFog(ctx.uFogColor, ctx.uFogDensity);
     glUniform1i(ctx.uFogEnabled, 1);
-
-    // Richtungslicht
     initializeDirectionalLight(ctx.uSun_ambient, ctx.uSun_diffuse, ctx.uSun_specular);
-
-    // Punktlicht
     initializePointLight(ctx.uLamp_ambient, ctx.uLamp_diffuse, ctx.uLamp_specular, ctx.uLamp_linear, ctx.uLamp_quadratic);
-
-    // Spotlicht
     initializeSpotLight(ctx.uSpot_ambient, ctx.uSpot_diffuse, ctx.uSpot_specular, ctx.uSpot_innerCone, ctx.uSpot_outerCone, ctx.uSpot_linear, ctx.uSpot_quadratic);
 
-    // Load meshes in scene
+    // Meshes
     loadMesh("objects/teapot.obj", &ctx.teapot);
     loadMesh("objects/column.obj", &ctx.column);
     loadMesh("objects/cube.obj", &ctx.cube);
@@ -115,77 +105,53 @@ int init()
     loadMesh("objects/tree/tree3/Baumstamm3.obj", &ctx.baumstamm3);
     loadMesh("objects/StreetLamp.obj", &ctx.laterne);
 
-    // Init OpenGL
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // GL-State
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
+    glEnable(GL_BLEND); // wird für den Glas-Pass genutzt
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(0.17f, 0.19f, 0.21f, 1.0f);
 
-    // Skybox
+    // Skybox initialisieren (eigenes Programm)
     initSkybox(&ctx);
     glUseProgram(ctx.skyboxProgramID);
-    glUniform1i(glGetUniformLocation(ctx.skyboxProgramID, "skybox"), 0);
+    glUniform1i(glGetUniformLocation(ctx.skyboxProgramID, "skybox"), 0); // Skybox-Sampler auf TU0
 
-    // Env map binding for main program
+    // Zurück zum Hauptprogramm und Sampler/Defaults setzen
     glUseProgram(ctx.programID);
-    ctx.uEnvMap = glGetUniformLocation(ctx.programID, "uEnvMap");
-    ctx.uUseEnvMap = glGetUniformLocation(ctx.programID, "uUseEnvMap");
-    ctx.uIOR = glGetUniformLocation(ctx.programID, "uIOR");
-    ctx.uEnvStrength = glGetUniformLocation(ctx.programID, "uEnvStrength");
-    ctx.uViewRotLoc = glGetUniformLocation(ctx.programID, "uViewRot");
-
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, ctx.skyboxTexture);
-    glUniform1i(ctx.uEnvMap, 1);
-
-    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-
-    // defaults
-    glUniform1f(ctx.uIOR, 1.5f);
-    glUniform1f(ctx.uEnvStrength, 0.85f);
-    glUniform1i(ctx.uUseEnvMap, 0);
-
-    // Texturkanäle
     glUniform1i(ctx.albedoLoc, 0);
     glUniform1i(ctx.normalLoc, 1);
     glUniform1i(ctx.roughnessLoc, 2);
+    glUniform1i(ctx.uEnvMap, 3); // samplerCube → Texture Unit 3
+    glUniform1i(ctx.uUseEnvMap, 0);
+    glUniform1f(ctx.uIOR, 1.5f);
+    glUniform1f(ctx.uEnvStrength, 0.85f);
 
-    // Texturen laden
-    // Cottage
+    // Cubemap (Skybox-Textur) auf TU3 für das Hauptprogramm binden
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, ctx.skyboxTexture);
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+    // 2D-Texturen
     ctx.albedoCottage = loadTexture2D("textures/cottage/cottage_diffuse.png", 1);
     ctx.normalCottage = loadTexture2D("textures/cottage/cottage_normal.png", 0);
-    // gras
     ctx.albedoGras = loadTexture2D("textures/gras/grass1-albedo3.png", 1);
     ctx.normalGras = loadTexture2D("textures/gras/grass1-normal1-ogl.png", 0);
     ctx.roughnessGras = loadTexture2D("textures/gras/grass1-rough.png", 0);
-    // Bäume
     ctx.albedoBaum1und2 = loadTexture2D("textures/trees/tree1/BarkDecidious0143_5_S.jpg", 1);
     ctx.albedoBaum3 = loadTexture2D("textures/trees/tree3/BarkDecidious0194_7_S.jpg", 1);
     ctx.normalBaum = loadTexture2D("textures/trees/tree1/tree_bark_normal_ogl.png", 0);
     ctx.roughBaum = loadTexture2D("textures/trees/tree1/tree_bark_roughness.png", 0);
-    // Glas
     ctx.albedoGlas = loadTexture2D("textures/glas/glass_albedo_red_a18.png", 1);
     ctx.normalGlas = loadTexture2D("textures/glas/glass_normal_flat_ogl.png", 0);
     ctx.roughGlas = loadTexture2D("textures/glas/glass_roughness_glossy_012.png", 0);
-    // Coulmn
     ctx.albedoColumn = loadTexture2D("textures/column/Column_Albedo_fixed.png", 1);
     ctx.normalColumn = loadTexture2D("textures/column/column_normal.002.png", 0);
     ctx.roughColumn = loadTexture2D("textures/column/column_roughness.png", 0);
-    // Teapot
     ctx.albedoTeapot = loadTexture2D("textures/teapot/1df5a76d-fb2d-45d4-ae28-7265782ed03b.png", 1);
-    /* TODO: Add textures later
-    // Slenderman
-    ctx.albedoSlenderman = loadTexture2D("", 1);
-    ctx.normalSlenderman = loadTexture2D("", 0);
-    ctx.roughSlenderman = loadTexture2D("", 0);
-    // Laterne
-    ctx.albedoLaterne = loadTexture2D("", 1);
-    ctx.normalLaterne = loadTexture2D("", 0);
-    ctx.roughLaterne = loadTexture2D("", 0);
-    */
+
     return 0;
 }
 
@@ -194,36 +160,41 @@ void draw()
     glUseProgram(ctx.programID);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // View and  Projection matrix
-    GLfloat V[16];
-    GLfloat P[16];
+    // View/Projection
+    GLfloat V[16], P[16];
     camera(V, P, &ctx);
 
-    // viewMatrix ist deine 4x4-View-Matrix (column-major, OpenGL-konform)
+    // obere linke 3x3 der View-Matrix an den Shader (für Env-Map)
     GLfloat viewRot[9] = {
         V[0], V[1], V[2],
         V[4], V[5], V[6],
         V[8], V[9], V[10]};
-
-    // Achtung: Das sind die oberen linken 3x3-Elemente ohne Translation.
     glUniformMatrix3fv(ctx.uViewRotLoc, 1, GL_FALSE, viewRot);
 
+    // Env-Defaults pro Frame
+    glUniform1i(ctx.uUseEnvMap, 0);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, ctx.skyboxTexture); // falls Skybox-Code die TU geändert hat
+
+    // UI/States
     lichtSchalter(ctx.uSun_enabled, ctx.uLamp_enabled, ctx.uSpot_enabled, ctx.window, &ctx.status);
     nebelSchalter(ctx.uFogEnabled, ctx.window, &ctx.status);
     vollbildschalter(ctx.window, &ctx.status);
 
-    // Richtungslicht an die Kamera setzten
+    // Lichter setzen
     setDirectionalLight(ctx.uSun_direction, V, 1.0f, -1.0f, -1.0f);
-
-    // Headlight (Spotlicht) immer auf die Kamera setzen
     setSpotLight(ctx.uSpot_position, ctx.uSpot_direction, V, ctx.eye, ctx.look);
-
-    // Punktlicht-Position JEDES Frame in View-Space updaten
     setPointLight(ctx.uLamp_position, V, 0.0f, 5.0f, 0.0f);
 
     GLfloat M[16];
 
-    // 1) Graue Säule (gestreckter Cube)
+    // ---------- Opaque rendering ----------
+    glDisable(GL_BLEND);
+
+        // Test: Make everything reflective
+        glUniform1i(ctx.uUseEnvMap, 1);
+
+
     // Cottage
     glUniform2f(ctx.uvScale, 1.0f, 1.0f);
     glActiveTexture(GL_TEXTURE0);
@@ -237,7 +208,6 @@ void draw()
     rotateY(M, M, 20);
     scale(M, M, (GLfloat[]){0.5f, 0.5f, 0.5f});
     setMaterialWood(&ctx);
-    // Fix: pass uniform locations (MVLoc) instead of a texture handle
     drawMeshWithModel(&ctx.cottage, V, P, M, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc);
 
     // Gras
@@ -254,7 +224,7 @@ void draw()
     setMaterialGrass(&ctx);
     drawMeshWithModel(&ctx.gras, V, P, M, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc);
 
-    // Graue Säule
+    // Säule
     glUniform2f(ctx.uvScale, 1.0f, 1.0f);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, ctx.albedoColumn);
@@ -282,7 +252,7 @@ void draw()
     setMaterialGrayPillar(&ctx);
     drawMeshWithModel(&ctx.laterne, V, P, M, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc);
 
-    // Golderner Teapot
+    // Gold-Teapot
     glUniform2f(ctx.uvScale, 1.0f, 1.0f);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, ctx.albedoTeapot);
@@ -296,20 +266,31 @@ void draw()
     setMaterialPolishedGold(&ctx);
     drawMeshWithModel(&ctx.teapot, V, P, M, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc);
 
-    // Slenderman
+    // Slenderman (opak)
     setMaterialGrayPillar(&ctx);
-    drawSlenderman(M, V, P, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc, ctx.albedoSlenderman, ctx.normalSlenderman, ctx.roughSlenderman, &ctx.slenderman, ctx.uvScale, ctx.eye);
+    drawSlenderman(M, V, P, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc,
+                   ctx.albedoSlenderman, ctx.normalSlenderman, ctx.roughSlenderman,
+                   &ctx.slenderman, ctx.uvScale, ctx.eye);
 
-    // Forrest
+    // Wald
     setMaterialWood(&ctx);
-    drawForrest(80, M, V, P, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc, ctx.albedoBaum1und2, ctx.albedoBaum3, ctx.normalBaum, ctx.roughBaum,
+    drawForrest(80, M, V, P, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc,
+                ctx.albedoBaum1und2, ctx.albedoBaum3, ctx.normalBaum, ctx.roughBaum,
                 &ctx.baumstamm1, &ctx.baumstamm2, &ctx.baumstamm3, ctx.uvScale);
-    // Skybox
+
+    // ---------- Skybox ----------
     drawSkybox(&ctx, V, P);
 
-    // Glaswürfel
-    glUseProgram(ctx.programID);
+    // ---------- Transparent rendering (Glass) ----------
+    glUseProgram(ctx.programID); // Skybox hat Programm gewechselt
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, ctx.skyboxTexture); // sicherstellen
+    glEnable(GL_BLEND);
+
     glUniform1i(ctx.uUseEnvMap, 1);
+    glUniform1f(ctx.uIOR, 1.5f);
+    glUniform1f(ctx.uEnvStrength, 0.85f);
+
     glUniform2f(ctx.uvScale, 1.0f, 1.0f);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, ctx.albedoGlas);
@@ -322,15 +303,12 @@ void draw()
     scale(M, M, (GLfloat[]){0.24f, 0.24f, 0.24f});
     setMaterialGlass(&ctx, 0.18f);
     drawtransparentMeshWithModel(&ctx.cube, V, P, M, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc);
+
     glUniform1i(ctx.uUseEnvMap, 0);
 }
 
 int main(void)
 {
-    // For different entry-points
-    chdir("src");
-    errno = 0;
-
     assert(init() == 0);
 
     while (!glfwWindowShouldClose(ctx.window))

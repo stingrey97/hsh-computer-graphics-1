@@ -26,7 +26,7 @@
 /*
  * Skybox
  */
-#define SKYBOX_NIGHT // Skybox texture to be load. Possible values: SKYBOX_DAY, SKYBOX_NIGHT, SKYBOX_MYSTIC
+#define SKYBOX_DAY // Skybox texture to be load. Possible values: SKYBOX_DAY, SKYBOX_NIGHT, SKYBOX_MYSTIC
 
 /*
  * Math
