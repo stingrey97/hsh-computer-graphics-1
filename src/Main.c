@@ -309,6 +309,8 @@ void draw()
 
 int main(void)
 {
+    chdir("src");
+    
     assert(init() == 0);
 
     while (!glfwWindowShouldClose(ctx.window))
