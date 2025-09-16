@@ -50,6 +50,8 @@ GLuint albedoGras, normalGras, roughnessGras;
 GLuint albedoBaum1und2, albedoBaum3, normalBaum, roughBaum;
 GLuint albedoGlas, normalGlas, roughGlas;
 GLuint albedoTeapot;
+GLuint albedoSlenderman, normalSlenderman, roughSlenderman;
+GLuint albedoLaterne, normalLaterne, roughLaterne;
 
 // Nebel (struct fog nebel)
 GLint uFogColor, uFogDensity, uFogEnabled;
@@ -58,14 +60,19 @@ GLint uFogColor, uFogDensity, uFogEnabled;
 GLint MVLoc, MVPLoc, NormalMLoc;
 
 // Mesh
-Mesh cube, teapot, column, gras, cottage, baumstamm1, baumstamm2, baumstamm3, slenderman;
+Mesh cube, teapot, column, gras, cottage, baumstamm1, baumstamm2, baumstamm3, slenderman, laterne;
+
+// Context
+static AppContext context;
 
 // Licht Status
-Status status = {1, 1, 1};
+Status status = {1, 1, 1, 1, 0};
 
 void framebuffer_size_callback(GLFWwindow *window, int cb_width, int cb_height)
 {
     glViewport(0, 0, cb_width, cb_height);
+    context.height = cb_height;
+    context.width = cb_width;
 }
 
 // TODO: MATERIALS.C
@@ -129,72 +136,72 @@ void setMaterialSlenderman()
     glUniform1f(uMat_shininess, 64.0f);
 }
 
-void init(AppContext *context)
+void init()
 {
     // Initial camera
-    setVec3(context->eye, 5, 0, 0);
-    setVec3(context->look, 0, 0, 0);
-    setVec3(context->up, 0, 1, 0);
+    setVec3(context.eye, 5, 0, 0);
+    setVec3(context.look, 0, 0, 0);
+    setVec3(context.up, 0, 1, 0);
 
-    initCamera(context);
+    initCamera(&context);
 
     const char *vertexPath = "shader/vertex/vertexShader.glsl";
     const char *fragmentPath = "shader/fragment/fragmentShader.glsl";
 
-    context->programID = loadShaders(vertexPath, fragmentPath);
-    glUseProgram(context->programID);
+    context.programID = loadShaders(vertexPath, fragmentPath);
+    glUseProgram(context.programID);
 
     // einmal die Location holen Matrizen
-    MVLoc = glGetUniformLocation(context->programID, "MV");
-    MVPLoc = glGetUniformLocation(context->programID, "MVP");
-    NormalMLoc = glGetUniformLocation(context->programID, "NormalM");
+    MVLoc = glGetUniformLocation(context.programID, "MV");
+    MVPLoc = glGetUniformLocation(context.programID, "MVP");
+    NormalMLoc = glGetUniformLocation(context.programID, "NormalM");
 
     // neue Uniforms für Licht/Material
     // Material
-    uMat_emission = glGetUniformLocation(context->programID, "material.emission");
-    uMat_ambient = glGetUniformLocation(context->programID, "material.ambient");
-    uMat_diffuse = glGetUniformLocation(context->programID, "material.diffuse");
-    uMat_specular = glGetUniformLocation(context->programID, "material.specular");
-    uMat_shininess = glGetUniformLocation(context->programID, "material.shininess");
+    uMat_emission = glGetUniformLocation(context.programID, "material.emission");
+    uMat_ambient = glGetUniformLocation(context.programID, "material.ambient");
+    uMat_diffuse = glGetUniformLocation(context.programID, "material.diffuse");
+    uMat_specular = glGetUniformLocation(context.programID, "material.specular");
+    uMat_shininess = glGetUniformLocation(context.programID, "material.shininess");
 
     // Richtungslicht
-    uSun_enabled = glGetUniformLocation(context->programID, "richtungslicht.enabled");
-    uSun_direction = glGetUniformLocation(context->programID, "richtungslicht.direction");
-    uSun_ambient = glGetUniformLocation(context->programID, "richtungslicht.ambient");
-    uSun_diffuse = glGetUniformLocation(context->programID, "richtungslicht.diffuse");
-    uSun_specular = glGetUniformLocation(context->programID, "richtungslicht.specular");
+    uSun_enabled = glGetUniformLocation(context.programID, "richtungslicht.enabled");
+    uSun_direction = glGetUniformLocation(context.programID, "richtungslicht.direction");
+    uSun_ambient = glGetUniformLocation(context.programID, "richtungslicht.ambient");
+    uSun_diffuse = glGetUniformLocation(context.programID, "richtungslicht.diffuse");
+    uSun_specular = glGetUniformLocation(context.programID, "richtungslicht.specular");
 
     // Punktlicht
-    uLamp_enabled = glGetUniformLocation(context->programID, "punktlicht.enabled");
-    uLamp_position = glGetUniformLocation(context->programID, "punktlicht.position");
-    uLamp_ambient = glGetUniformLocation(context->programID, "punktlicht.ambient");
-    uLamp_diffuse = glGetUniformLocation(context->programID, "punktlicht.diffuse");
-    uLamp_specular = glGetUniformLocation(context->programID, "punktlicht.specular");
-    uLamp_linear = glGetUniformLocation(context->programID, "punktlicht.linear");
-    uLamp_quadratic = glGetUniformLocation(context->programID, "punktlicht.quadratic");
+    uLamp_enabled = glGetUniformLocation(context.programID, "punktlicht.enabled");
+    uLamp_position = glGetUniformLocation(context.programID, "punktlicht.position");
+    uLamp_ambient = glGetUniformLocation(context.programID, "punktlicht.ambient");
+    uLamp_diffuse = glGetUniformLocation(context.programID, "punktlicht.diffuse");
+    uLamp_specular = glGetUniformLocation(context.programID, "punktlicht.specular");
+    uLamp_linear = glGetUniformLocation(context.programID, "punktlicht.linear");
+    uLamp_quadratic = glGetUniformLocation(context.programID, "punktlicht.quadratic");
 
     // Spotlicht
-    uSpot_enabled = glGetUniformLocation(context->programID, "spotlicht.enabled");
-    uSpot_position = glGetUniformLocation(context->programID, "spotlicht.position");
-    uSpot_direction = glGetUniformLocation(context->programID, "spotlicht.direction");
-    uSpot_innerCone = glGetUniformLocation(context->programID, "spotlicht.innerCone");
-    uSpot_outerCone = glGetUniformLocation(context->programID, "spotlicht.outerCone");
-    uSpot_ambient = glGetUniformLocation(context->programID, "spotlicht.ambient");
-    uSpot_diffuse = glGetUniformLocation(context->programID, "spotlicht.diffuse");
-    uSpot_specular = glGetUniformLocation(context->programID, "spotlicht.specular");
-    uSpot_linear = glGetUniformLocation(context->programID, "spotlicht.linear");
-    uSpot_quadratic = glGetUniformLocation(context->programID, "spotlicht.quadratic");
+    uSpot_enabled = glGetUniformLocation(context.programID, "spotlicht.enabled");
+    uSpot_position = glGetUniformLocation(context.programID, "spotlicht.position");
+    uSpot_direction = glGetUniformLocation(context.programID, "spotlicht.direction");
+    uSpot_innerCone = glGetUniformLocation(context.programID, "spotlicht.innerCone");
+    uSpot_outerCone = glGetUniformLocation(context.programID, "spotlicht.outerCone");
+    uSpot_ambient = glGetUniformLocation(context.programID, "spotlicht.ambient");
+    uSpot_diffuse = glGetUniformLocation(context.programID, "spotlicht.diffuse");
+    uSpot_specular = glGetUniformLocation(context.programID, "spotlicht.specular");
+    uSpot_linear = glGetUniformLocation(context.programID, "spotlicht.linear");
+    uSpot_quadratic = glGetUniformLocation(context.programID, "spotlicht.quadratic");
 
     // Nebel
-    uFogColor = glGetUniformLocation(context->programID, "nebel.color");
-    uFogDensity = glGetUniformLocation(context->programID, "nebel.density");
-    uFogEnabled = glGetUniformLocation(context->programID, "nebel.enabled");
+    uFogColor = glGetUniformLocation(context.programID, "nebel.color");
+    uFogDensity = glGetUniformLocation(context.programID, "nebel.density");
+    uFogEnabled = glGetUniformLocation(context.programID, "nebel.enabled");
 
     // Textur
-    albedoLoc = glGetUniformLocation(context->programID, "uAlbedo");
-    normalLoc = glGetUniformLocation(context->programID, "uNormalMap");
-    roughnessLoc = glGetUniformLocation(context->programID, "uRoughness");
-    uvScale = glGetUniformLocation(context->programID, "uvScale");
+    albedoLoc = glGetUniformLocation(context.programID, "uAlbedo");
+    normalLoc = glGetUniformLocation(context.programID, "uNormalMap");
+    roughnessLoc = glGetUniformLocation(context.programID, "uRoughness");
+    uvScale = glGetUniformLocation(context.programID, "uvScale");
 
     // Texturkanäle
     glUniform1i(albedoLoc, 0);
@@ -224,6 +231,14 @@ void init(AppContext *context)
     roughColumn = loadTexture2D("textures/column/column_roughness.png", 0);
     // Teapot
     albedoTeapot = loadTexture2D("textures/teapot/1df5a76d-fb2d-45d4-ae28-7265782ed03b.png", 1);
+    // Slenderman
+    albedoSlenderman = loadTexture2D("", 1);
+    normalSlenderman = loadTexture2D("", 0);
+    roughSlenderman = loadTexture2D("", 0);
+    // Laterne
+    albedoLaterne = loadTexture2D("", 1);
+    normalLaterne = loadTexture2D("", 0);
+    roughLaterne = loadTexture2D("", 0);
 
     // Lichter an aus
     glUniform1i(uSun_enabled, 1);
@@ -254,6 +269,7 @@ void init(AppContext *context)
     loadMesh("objects/tree/tree1/Baumstamm1.obj", &baumstamm1);
     loadMesh("objects/tree/tree2/Baumstamm2.obj", &baumstamm2);
     loadMesh("objects/tree/tree3/Baumstamm3.obj", &baumstamm3);
+    loadMesh("objects/StreetLamp.obj", &laterne);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -264,32 +280,33 @@ void init(AppContext *context)
     glClearColor(0.17f, 0.19f, 0.21f, 1.0f);
 
     // Skybox
-    initSkybox(context);
-    glUseProgram(context->skyboxProgramID);
-    glUniform1i(glGetUniformLocation(context->skyboxProgramID, "skybox"), 0);
+    initSkybox(&context);
+    glUseProgram(context.skyboxProgramID);
+    glUniform1i(glGetUniformLocation(context.skyboxProgramID, "skybox"), 0);
 }
 
-void draw(AppContext *context)
+void draw()
 {
-    glUseProgram(context->programID);
+    glUseProgram(context.programID);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Camera and View + Projection Matrix
     GLfloat V[16];
     GLfloat P[16];
-    camera(V, P, context);
+    camera(V, P, &context);
 
-    lichtSchalter(uSun_enabled, uLamp_enabled, uSpot_enabled, context->window, &status);
-    nebelSchalter(uFogEnabled, context->window, &status);
+    lichtSchalter(uSun_enabled, uLamp_enabled, uSpot_enabled, context.window, &status);
+    nebelSchalter(uFogEnabled, context.window, &status);
+    vollbildschalter(context.window, &status);
 
     // Richtungslicht an die Kamera setzten
     setDirectionalLight(uSun_direction, V, 1.0f, -1.0f, -1.0f);
 
     // Headlight (Spotlicht) immer auf die Kamera setzen
-    setSpotLight(uSpot_position, uSpot_direction, V, context->eye, context->look);
+    setSpotLight(uSpot_position, uSpot_direction, V, context.eye, context.look);
 
     // Punktlicht-Position JEDES Frame in View-Space updaten
-    setPointLight(uLamp_position, V, 2.0f, 2.0f, 5.0f);
+    setPointLight(uLamp_position, V, 0.0f, 5.0f, 0.0f);
 
     GLfloat M[16];
     // Cottage
@@ -335,6 +352,20 @@ void draw(AppContext *context)
     setMaterialGrayPillar();
     drawMeshWithModel(&column, V, P, M, MVLoc, MVPLoc, NormalMLoc);
 
+    // Laterne
+    glUniform2f(uvScale, 1.0f, 1.0f);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, albedoLaterne);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normalLaterne);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, roughLaterne);
+    identity(M);
+    translate(M, M, (GLfloat[]){-3.5f, 0.0f, 0.0f});
+    scale(M, M, (GLfloat[]){0.5f, 0.5f, 0.5f});
+    setMaterialGrayPillar();
+    drawMeshWithModel(&laterne, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+
     // Golderner Teapot
     glUniform2f(uvScale, 1.0f, 1.0f);
     glActiveTexture(GL_TEXTURE0);
@@ -349,71 +380,29 @@ void draw(AppContext *context)
     setMaterialPolishedGold();
     drawMeshWithModel(&teapot, V, P, M, MVLoc, MVPLoc, NormalMLoc);
 
-    //  Slenderman
-    identity(M);
-    translate(M, M, (GLfloat[]){1.4f, 0.0f, -3.2f});
-    rotateY(M, M, 180);
-    scale(M, M, (GLfloat[]){0.9f, 0.9f, 0.9f});
-    setMaterialSlenderman();
-    drawMeshWithModel(&slenderman, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+    //Slenderman
+    setMaterialGrayPillar();
+    drawSlenderman(M, V, P, MVLoc, MVPLoc, NormalMLoc, albedoSlenderman,normalSlenderman, roughSlenderman,&slenderman,uvScale, context.eye);
 
-    // Baum 1
-    glUniform2f(uvScale, 1500.0f, 1500.0f);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, albedoBaum1und2);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, normalBaum);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, roughBaum);
-    identity(M);
-    translate(M, M, (GLfloat[]){-4.0f, 0.0f, -2.5f}); // Position
-    rotateY(M, M, 30.0f);                             // Drehung
-    scale(M, M, (GLfloat[]){0.9f, 0.9f, 0.9f});
+    // Forrest
     setMaterialWood();
-    drawMeshWithModel(&baumstamm3, V, P, M, MVLoc, MVPLoc, NormalMLoc);
-
-    glUniform2f(uvScale, 1500.0f, 1500.0f);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, albedoBaum1und2);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, normalBaum);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, roughBaum);
-    identity(M);
-    translate(M, M, (GLfloat[]){14.0f, 0.0f, 12.5f}); // Position
-    rotateY(M, M, 30.0f);                             // Drehung
-    scale(M, M, (GLfloat[]){0.9f, 0.9f, 0.9f});
-    setMaterialWood();
-    drawMeshWithModel(&baumstamm3, V, P, M, MVLoc, MVPLoc, NormalMLoc);
-
-    glUniform2f(uvScale, 1500.0f, 1500.0f);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, albedoBaum3);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, normalBaum);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, roughBaum);
-    identity(M);
-    translate(M, M, (GLfloat[]){-14.0f, 0.0f, -12.5f}); // Position
-    rotateY(M, M, 30.0f);                               // Drehung
-    scale(M, M, (GLfloat[]){0.9f, 0.9f, 0.9f});
-    setMaterialWood();
-    drawMeshWithModel(&baumstamm3, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+    drawForrest(80, M, V, P, MVLoc, MVPLoc, NormalMLoc, albedoBaum1und2, albedoBaum3, normalBaum, roughBaum,
+                &baumstamm1, &baumstamm2, &baumstamm3, uvScale);
 
     // Skybox
     glCullFace(GL_FRONT);
-    glUseProgram(context->skyboxProgramID);
+    glUseProgram(context.skyboxProgramID);
     glDepthFunc(GL_LEQUAL);
     GLfloat VP[16];
     GLfloat V_noT[16];
     memcpy(V_noT, V, sizeof(V_noT));
     V_noT[12] = V_noT[13] = V_noT[14] = 0.0f;
     mat4f_mul_mat4f(VP, P, V_noT);
-    glUniformMatrix4fv(glGetUniformLocation(context->skyboxProgramID, "VP"), 1, GL_FALSE, VP);
+    glUniformMatrix4fv(glGetUniformLocation(context.skyboxProgramID, "VP"), 1, GL_FALSE, VP);
 
-    glBindVertexArray(context->skyboxVAO);
+    glBindVertexArray(context.skyboxVAO);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, context->skyboxTexture);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, context.skyboxTexture);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
     glCullFace(GL_BACK);
@@ -422,7 +411,7 @@ void draw(AppContext *context)
     glDepthFunc(GL_LESS);
 
     // Glaswürfel
-    glUseProgram(context->programID);
+    glUseProgram(context.programID);
     glUniform2f(uvScale, 1.0f, 1.0f);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, albedoGlas);
@@ -439,8 +428,6 @@ void draw(AppContext *context)
 
 int main(void)
 {
-
-    AppContext context = {0};
     context.width = INIT_WINDOW_WIDTH;
     context.height = INIT_WINDOW_HEIGHT;
 
@@ -465,6 +452,8 @@ int main(void)
     glfwSetFramebufferSizeCallback(context.window, framebuffer_size_callback);
     int fbw, fbh;
     glfwGetFramebufferSize(context.window, &fbw, &fbh);
+    context.width = fbw;
+    context.height = fbh;
     glViewport(0, 0, fbw, fbh);
 
     glfwMakeContextCurrent(context.window);

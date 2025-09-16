@@ -16,8 +16,8 @@ void initializeDirectionalLight(GLint uSun_ambient, GLint uSun_diffuse, GLint uS
 
 void initializePointLight(GLint uLamp_ambient, GLint uLamp_diffuse, GLint uLamp_specular, GLint uLamp_linear, GLint uLamp_quadratic)
 {
-    glUniform4f(uLamp_ambient, 0.25f, 0.25f, 0.25f, 1.0f);
-    glUniform4f(uLamp_diffuse, 1.0f, 1.0f, 1.0f, 1.0f);
+    glUniform4f(uLamp_ambient, 0.00f, 0.00f, 0.00f, 1.0f);
+    glUniform4f(uLamp_diffuse, 1.50f, 1.29f, 0.93f, 1.0f);
     glUniform4f(uLamp_specular, 1.0f, 1.0f, 1.0f, 1.0f);
     // Abschwächung (ruhig sanft)
     glUniform1f(uLamp_linear, 0.007f);
@@ -26,12 +26,12 @@ void initializePointLight(GLint uLamp_ambient, GLint uLamp_diffuse, GLint uLamp_
 
 void initializeSpotLight(GLint uSpot_ambient, GLint uSpot_diffuse, GLint uSpot_specular, GLint uSpot_innerCone, GLint uSpot_outerCone, GLint uSpot_linear, GLint uSpot_quadratic)
 {
-    glUniform4f(uSpot_ambient, 0.1, 0.1f, 0.1f, 1.0f);
+    glUniform4f(uSpot_ambient, 0.05, 0.05f, 0.05f, 1.0f);
     glUniform4f(uSpot_diffuse, 2.00f, 2.00f, 2.00f, 1.0f);
     glUniform4f(uSpot_specular, 2.00f, 2.00f, 2.00f, 1.0f);
 
-    glUniform1f(uSpot_linear, 0.02f);
-    glUniform1f(uSpot_quadratic, 0.002f);
+    glUniform1f(uSpot_linear, 0.0005f);
+    glUniform1f(uSpot_quadratic, 0.004f);
 
     float innerDeg = 11.0f, outerDeg = 18.0f;
     float innerRad = innerDeg * (float)PI / 180.0f;
