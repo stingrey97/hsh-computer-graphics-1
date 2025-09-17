@@ -270,7 +270,8 @@ void draw()
     setMaterialGrayPillar(&ctx);
     drawMeshWithModel(&ctx.laterne, V, P, M, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc);
 
-    // Gold-Teapot
+    // Teapot
+    glDisable(GL_CULL_FACE);
     glUniform2f(ctx.uvScale, 1.0f, 1.0f);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, ctx.albedoTeapot);
@@ -283,6 +284,7 @@ void draw()
     scale(M, M, (GLfloat[]){0.14f, 0.14f, 0.14f});
     setMaterialPolishedGold(&ctx);
     drawMeshWithModel(&ctx.teapot, V, P, M, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc);
+    glEnable(GL_CULL_FACE);
 
     // Slenderman (opak)
     setMaterialGrayPillar(&ctx);
@@ -292,7 +294,7 @@ void draw()
 
     // Wald
     setMaterialWood(&ctx);
-    drawForrest(3, M, V, P, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc,
+    drawForrest(MAX_TREE_COUNT, M, V, P, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc,
                 ctx.albedoBaum1und2, ctx.albedoBaum3, ctx.normalBaum, ctx.roughBaum,
                 &ctx.baumstamm1, &ctx.baumstamm2, &ctx.baumstamm3, ctx.uvScale);
 
