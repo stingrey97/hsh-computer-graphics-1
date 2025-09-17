@@ -85,3 +85,13 @@ void vollbildschalter(GLFWwindow *window, Status *status)
     }
     prevV = kn;
 }
+
+void reflektionSchalter(GLFWwindow* window, int* enable) {
+    static int prevKey = GLFW_RELEASE;
+    int k7 = glfwGetKey(window, GLFW_KEY_7);
+    if (k7 == GLFW_PRESS && prevKey == GLFW_RELEASE)
+    {
+        *enable = (*enable == 0) ? 1 : 0;
+    }
+    prevKey = k7;
+}

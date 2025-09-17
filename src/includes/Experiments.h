@@ -17,5 +17,6 @@ typedef struct
 extern void lichtSchalter(GLint sun, GLint lamp, GLint spot, GLFWwindow *window, Status *status);
 extern void nebelSchalter(GLint fogEnabled, GLFWwindow *window, Status *status);
 extern void vollbildschalter(GLFWwindow *window, Status *status);
+extern void reflektionSchalter(GLFWwindow* ctx, int* enable);
 
 #endif

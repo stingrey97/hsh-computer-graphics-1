@@ -206,6 +206,7 @@ void draw()
     lichtSchalter(ctx.uSun_enabled, ctx.uLamp_enabled, ctx.uSpot_enabled, ctx.window, &ctx.status);
     nebelSchalter(ctx.uFogEnabled, ctx.window, &ctx.status);
     vollbildschalter(ctx.window, &ctx.status);
+    reflektionSchalter(ctx.window, &ctx.reflect);
 
     // Lichter setzen
     setDirectionalLight(ctx.uSun_direction, V, 1.0f, -1.0f, -1.0f);
@@ -213,11 +214,6 @@ void draw()
     setPointLight(ctx.uLamp_position, V, 0.0f, 5.0f, 0.0f);
 
     GLfloat M[16];
-
-    if (glfwGetKey(ctx.window, GLFW_KEY_7) == GLFW_PRESS)
-    {
-        ctx.reflect = ctx.reflect == 0 ? 1 : 0;
-    }
 
     // ---------- Opaque rendering ----------
     glDisable(GL_BLEND);
