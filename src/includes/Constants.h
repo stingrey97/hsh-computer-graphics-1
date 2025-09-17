@@ -34,6 +34,7 @@
  */
 #define EPS 1e-6f
 #define PI 3.14159265358979323846
+#define ROUND_OFF_ERROR 1e-3f
 
 /*
  * Enviroment 

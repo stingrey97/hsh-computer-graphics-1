@@ -165,7 +165,7 @@ void printVecN(const GLfloat *vec, const int n)
 {
     assert(vec != NULL);
     for (int i = 0; i < n; i++)
-        printf("%f ", vec[i]);
+        printf("%.3f ", vec[i]);
     printf("\n");
 }
 
@@ -181,17 +181,34 @@ void printVec4(const GLfloat *vec)
     printVecN(vec, 4);
 }
 
-void printMat4(const GLfloat *mat)
+void printMatN(const GLfloat *mat, const int n)
 {
-    assert(mat != NULL);
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < n; i++)
     {
-        for (int j = 0; j < 4; j++)
+        for (int j = 0; j < n; j++)
         {
-            printf("%f ", mat[j * 4 + i]);
+            printf("%.3f ", mat[j * n + i]);
         }
         printf("\n");
     }
+}
+
+void printMat4(const GLfloat *mat)
+{
+    return printMatN(mat, 4);
+}
+
+void printMat3(const GLfloat *mat)
+{
+    return printMatN(mat, 3);
+}
+
+int inRange(const GLfloat a, const GLfloat b)
+{
+
+    if ((a + ROUND_OFF_ERROR >= b && a < b) || (a - ROUND_OFF_ERROR <= b && a > b))
+        return 1;
+    return 0;
 }
 
 void mat3_from_mat4(GLfloat out[9], const GLfloat M[16])
@@ -255,6 +272,53 @@ void transform_point_view(GLfloat out3[3], const GLfloat V[16], const GLfloat pW
     out3[0] = V[0] * x + V[4] * y + V[8] * z + V[12];
     out3[1] = V[1] * x + V[5] * y + V[9] * z + V[13];
     out3[2] = V[2] * x + V[6] * y + V[10] * z + V[14];
+}
+
+int compareVecN(const GLfloat *vecA, const GLfloat *vecB, const int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+        if (vecA[i] != vecB[i])
+        {
+            if (inRange(vecA[i], vecB[i]) == 0)
+            {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+int compareVec3(const GLfloat *vecA, const GLfloat *vecB) { return compareVecN(vecA, vecB, 3); }
+
+int compareVec4(const GLfloat *vecA, const GLfloat *vecB) { return compareVecN(vecA, vecB, 4); }
+
+int compareMatN(const GLfloat *matA, const GLfloat *matB, const int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (matA[j * n + i] != matB[j * n + i])
+            {
+                if (inRange(matA[j * n + i], matB[j * n + i]) == 0)
+                {
+                    return 0;
+                }
+            }
+        }
+    }
+    return 1;
+}
+
+int compareMat4(const GLfloat *matA, const GLfloat *matB)
+{
+    return compareMatN(matA, matB, 4);
+}
+
+int compareMat3(const GLfloat *matA, const GLfloat *matB)
+{
+    return compareMatN(matA, matB, 3);
 }
 
 void identity(GLfloat *out)
