@@ -154,7 +154,7 @@ int init()
     ctx.albedoTeapot = loadTexture2D("textures/teapot/1df5a76d-fb2d-45d4-ae28-7265782ed03b.png", 1);
 
     // Coming soon (replace textures)
-    ctx.albedoSlenderman = loadTexture2D("textures/trees/tree1/BarkDecidious0143_5_S.jpg", 1);
+    ctx.albedoSlenderman = loadTexture2D("textures/slenderman/Slenderman_Albedo.png", 1);
     ctx.normalSlenderman = loadTexture2D("textures/cottage/cottage_normal.png", 0);
     ctx.roughSlenderman = loadTexture2D("textures/trees/tree1/tree_bark_roughness.png", 0);
 
@@ -203,7 +203,7 @@ void draw()
     glDisable(GL_BLEND);
 
         // Test: Make everything reflective
-        // glUniform1i(ctx.uUseEnvMap, 1);
+        glUniform1i(ctx.uUseEnvMap, 1);
 
 
     // Cottage
