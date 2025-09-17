@@ -69,6 +69,9 @@ int init()
     glfwMakeContextCurrent(ctx.window);
     glewInit();
 
+    // verarbeitung der Einagen über Sticky Keys
+    glfwSetInputMode(ctx.window, GLFW_STICKY_KEYS, GLFW_TRUE);
+
     // Kamera
     setVec3(ctx.eye, 1, 0, 0);
     setVec3(ctx.look, 0, 0, 0);
@@ -198,12 +201,16 @@ void draw()
     setPointLight(ctx.uLamp_position, V, 0.0f, 5.0f, 0.0f);
 
     GLfloat M[16];
+    
+    if(glfwGetKey(ctx.window, GLFW_KEY_7) == GLFW_PRESS) {
+        ctx.reflect = ctx.reflect == 0 ? 1 : 0;
+    }
 
     // ---------- Opaque rendering ----------
     glDisable(GL_BLEND);
 
         // Test: Make everything reflective
-        glUniform1i(ctx.uUseEnvMap, 1);
+        glUniform1i(ctx.uUseEnvMap, ctx.reflect); //Tag/Nacht Shit 1/0
 
 
     // Cottage
@@ -285,7 +292,7 @@ void draw()
 
     // Wald
     setMaterialWood(&ctx);
-    drawForrest(80, M, V, P, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc,
+    drawForrest(3, M, V, P, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc,
                 ctx.albedoBaum1und2, ctx.albedoBaum3, ctx.normalBaum, ctx.roughBaum,
                 &ctx.baumstamm1, &ctx.baumstamm2, &ctx.baumstamm3, ctx.uvScale);
 

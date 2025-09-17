@@ -21,6 +21,7 @@ typedef struct
     GLuint skyboxProgramID;
     GLuint skyboxVAO;
     GLuint skyboxTexture;
+    GLint  reflect;
 
     // Camera
     GLfloat INITIAL_EYE[3], INITIAL_LOOK[3], INITIAL_UP[3];
