@@ -27,7 +27,7 @@
 /*
  * Skybox
  */
-#define SKYBOX_NIGHT // Skybox texture to be load. Possible values: SKYBOX_DAY, SKYBOX_NIGHT, SKYBOX_MYSTIC
+#define SKYBOX_DAY // Skybox texture to be load. Possible values: SKYBOX_DAY, SKYBOX_NIGHT, SKYBOX_MYSTIC
 
 /*
  * Math
@@ -39,7 +39,7 @@
 /*
  * Enviroment 
  */
-#define MAX_TREE_COUNT 100
+#define MAX_TREE_COUNT 80
 #define TREE_RENDER_DISTANCE 30.0f
 
 #endif

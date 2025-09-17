@@ -203,7 +203,7 @@ void draw()
     glDisable(GL_BLEND);
 
         // Test: Make everything reflective
-        glUniform1i(ctx.uUseEnvMap, 1);
+        // glUniform1i(ctx.uUseEnvMap, 1);
 
 
     // Cottage
@@ -293,9 +293,9 @@ void draw()
     drawSkybox(&ctx, V, P);
 
     // ---------- Transparent rendering (Glass) ----------
-    glUseProgram(ctx.programID); // Skybox hat Programm gewechselt
+    glUseProgram(ctx.programID);
     glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, ctx.skyboxTexture); // sicherstellen
+    glBindTexture(GL_TEXTURE_CUBE_MAP, ctx.skyboxTexture);
     glEnable(GL_BLEND);
 
     glUniform1i(ctx.uUseEnvMap, 1);
