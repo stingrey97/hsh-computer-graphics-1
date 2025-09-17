@@ -162,7 +162,7 @@ int init()
     ctx.albedoLaterne = loadTexture2D("textures/trees/tree1/BarkDecidious0143_5_S.jpg", 1);
     ctx.normalLaterne = loadTexture2D("textures/cottage/cottage_normal.png", 0);
     ctx.roughLaterne = loadTexture2D("textures/trees/tree1/tree_bark_roughness.png", 0);
-    
+
     return 0;
 }
 
@@ -185,7 +185,7 @@ void draw()
     // Env-Defaults pro Frame
     glUniform1i(ctx.uUseEnvMap, 0);
     glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, ctx.skyboxTexture); // falls Skybox-Code die TU geändert hat
+    glBindTexture(GL_TEXTURE_CUBE_MAP, ctx.skyboxTexture);
 
     // UI/States
     lichtSchalter(ctx.uSun_enabled, ctx.uLamp_enabled, ctx.uSpot_enabled, ctx.window, &ctx.status);
@@ -198,17 +198,17 @@ void draw()
     setPointLight(ctx.uLamp_position, V, 0.0f, 5.0f, 0.0f);
 
     GLfloat M[16];
-    
-    if(glfwGetKey(ctx.window, GLFW_KEY_7) == GLFW_PRESS) {
+
+    if (glfwGetKey(ctx.window, GLFW_KEY_7) == GLFW_PRESS)
+    {
         ctx.reflect = ctx.reflect == 0 ? 1 : 0;
     }
 
     // ---------- Opaque rendering ----------
     glDisable(GL_BLEND);
 
-        // Test: Make everything reflective
-        glUniform1i(ctx.uUseEnvMap, ctx.reflect); //Tag/Nacht Shit 1/0
-
+    // Test: Make everything reflective
+    glUniform1i(ctx.uUseEnvMap, ctx.reflect);
 
     // Cottage
     glUniform2f(ctx.uvScale, 1.0f, 1.0f);
@@ -277,6 +277,11 @@ void draw()
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, ctx.roughGlas);
     identity(M);
+    static float teapotAngle = 0.0f;
+    teapotAngle += 0.5f;
+    if (teapotAngle >= 360.0f)
+        teapotAngle -= 360.0f;
+    rotateY(M, M, teapotAngle);
     translate(M, M, (GLfloat[]){0.0f, 1.6f, 0.0f});
     scale(M, M, (GLfloat[]){0.14f, 0.14f, 0.14f});
     setMaterialPolishedGold(&ctx);
@@ -326,8 +331,13 @@ void draw()
 
 int main(void)
 {
+    // Change to correct entry point (for relative paths)
     chdir("src");
-    
+
+    // FPS counter
+    double lastTime = glfwGetTime();
+    int frames = 0;
+
     assert(init() == 0);
 
     testeFunktionen();
@@ -337,6 +347,21 @@ int main(void)
         draw();
         glfwSwapBuffers(ctx.window);
         glfwPollEvents();
+
+        // FPS counter in window title
+        frames++;
+        double now = glfwGetTime();
+        if (now - lastTime >= 1.0)
+        {
+            double fps = (double)frames;
+            double msPerFrame = 1000.0 / fps;
+            printf("%.2f ms/frame | %.0f FPS\n", msPerFrame, fps);
+            frames = 0;
+            lastTime += 1.0;
+            char title[128];
+            snprintf(title, sizeof(title), "%s - %.0f FPS", INIT_WINDOW_TITLE, fps);
+            glfwSetWindowTitle(ctx.window, title);
+        }
     }
 
     glfwTerminate();
