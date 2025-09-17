@@ -155,8 +155,8 @@ int init()
 
     // Coming soon (replace textures)
     ctx.albedoSlenderman = loadTexture2D("textures/slenderman/Slenderman_Albedo.png", 1);
-    ctx.normalSlenderman = loadTexture2D("textures/cottage/cottage_normal.png", 0);
-    ctx.roughSlenderman = loadTexture2D("textures/trees/tree1/tree_bark_roughness.png", 0);
+    ctx.normalSlenderman = loadTexture2D("textures/slenderman/Slender_Normal.png", 0);
+    ctx.roughSlenderman = loadTexture2D("textures/slenderman/Slender_Roughness.png", 0);
 
     ctx.albedoLaterne = loadTexture2D("textures/trees/tree1/BarkDecidious0143_5_S.jpg", 1);
     ctx.normalLaterne = loadTexture2D("textures/cottage/cottage_normal.png", 0);
