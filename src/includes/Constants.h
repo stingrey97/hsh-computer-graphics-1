@@ -9,6 +9,8 @@
 #define INIT_WINDOW_TITLE "OpenGL Program"
 #define INIT_WINDOW_WIDTH 1024
 #define INIT_WINDOW_HEIGHT 768
+#define QUERY_LAG 3
+#define QUERY_COUNT 8 
 
 /*
  * Camera
@@ -40,6 +42,6 @@
 /*
  * Enviroment 
  */
-#define MAX_TREE_COUNT 100
+#define MAX_TREE_COUNT 120
 
 #endif

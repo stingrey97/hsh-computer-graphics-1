@@ -38,6 +38,21 @@ void framebuffer_size_callback(GLFWwindow *window, int cb_width, int cb_height)
     glViewport(0, 0, cb_width, cb_height);
 }
 
+void updateFpsCounter(GLFWwindow* w) {
+    static double prev = 0.0;
+    static int frames = 0;
+    double t = glfwGetTime();
+    double dt = t - prev;
+    if (dt >= 1.0) {
+        char title[128];
+        snprintf(title, sizeof(title), "%s  |  FPS: %.1f", INIT_WINDOW_TITLE, frames / dt);
+        glfwSetWindowTitle(w, title);
+        prev = t;
+        frames = 0;
+    }
+    frames++;
+}
+
 int init()
 {
     ctx.width = INIT_WINDOW_WIDTH;
@@ -68,6 +83,7 @@ int init()
 
     glfwMakeContextCurrent(ctx.window);
     glewInit();
+    glfwSwapInterval(1);
 
     // verarbeitung der Einagen über Sticky Keys
     glfwSetInputMode(ctx.window, GLFW_STICKY_KEYS, GLFW_TRUE);
@@ -331,40 +347,76 @@ void draw()
 
 int main(void)
 {
-    // Change to correct entry point (for relative paths)
     chdir("src");
-
-    // FPS counter
-    double lastTime = glfwGetTime();
-    int frames = 0;
-
     assert(init() == 0);
+
+    // Kontext sicher binden und VSync setzen
+    glfwMakeContextCurrent(ctx.window);
+
+    // Zwei Zeitmess-Queries (Ping-Pong)
+    GLuint q[2];
+    glGenQueries(2, q);
 
     testeFunktionen();
 
+    // FPS-Variablen
+    double t0 = glfwGetTime();
+    int    frames = 0;
+
+    // Ping-Pong-Index und Flag, ob ein Vorframe existiert
+    int cur = 0;
+    int have_prev = 0;
+
     while (!glfwWindowShouldClose(ctx.window))
     {
-        draw();
+        // --- GPU-Time dieses Frames messen (GL_TIME_ELAPSED) ---
+        glBeginQuery(GL_TIME_ELAPSED, q[cur]);
+
+        draw(); // deine Render-Calls
+
+        glEndQuery(GL_TIME_ELAPSED);
+
+        // Präsentieren + Events
         glfwSwapBuffers(ctx.window);
         glfwPollEvents();
 
-        // FPS counter in window title
+        // --- FPS live berechnen ---
         frames++;
         double now = glfwGetTime();
-        if (now - lastTime >= 1.0)
-        {
-            double fps = (double)frames;
-            double msPerFrame = 1000.0 / fps;
-            printf("%.2f ms/frame | %.0f FPS\n", msPerFrame, fps);
+        double fps = frames / (now - t0);
+
+        // --- GPU-Zeit vom Vorframe blockierend abholen ---
+        double gpu_ms = -1.0;
+        if (have_prev) {
+            // GL_QUERY_RESULT blockiert, bis Resultat vorliegt -> garantiert ein Wert
+            GLuint64 elapsed_ns = 0;
+            glGetQueryObjectui64v(q[1 - cur], GL_QUERY_RESULT, &elapsed_ns);
+            gpu_ms = (double)elapsed_ns / 1e6; // ns -> ms
+        } else {
+            have_prev = 1; // nach dem ersten Frame steht ab jetzt ein Vorframe-Ergebnis bereit
+        }
+
+        // Fenstertitel setzen (immer FPS; GPU-ms sobald vorhanden)
+        char title[160];
+        if (gpu_ms >= 0.0)
+            snprintf(title, sizeof(title), "%s | FPS: %.1f | GPU: %.3f ms",
+                     INIT_WINDOW_TITLE, fps, gpu_ms);
+        else
+            snprintf(title, sizeof(title), "%s | FPS: %.1f | GPU: …",
+                     INIT_WINDOW_TITLE, fps);
+        // glfwSetWindowTitle(ctx.window, title);
+
+        // Ping-Pong umschalten
+        cur = 1 - cur;
+
+        // FPS-Fenster jede Sekunde neu starten (stabilere Anzeige)
+        if (now - t0 >= 1.0) {
+            t0 = now;
             frames = 0;
-            lastTime += 1.0;
-            char title[128];
-            snprintf(title, sizeof(title), "%s - %.0f FPS", INIT_WINDOW_TITLE, fps);
-            glfwSetWindowTitle(ctx.window, title);
         }
     }
 
+    glDeleteQueries(2, q);
     glfwTerminate();
-
     return 0;
 }
