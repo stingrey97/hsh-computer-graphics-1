@@ -40,7 +40,6 @@
 /*
  * Enviroment 
  */
-#define MAX_TREE_COUNT 80
-#define TREE_RENDER_DISTANCE 30.0f
+#define MAX_TREE_COUNT 50
 
 #endif

@@ -155,8 +155,6 @@ int init()
     ctx.normalColumn = loadTexture2D("textures/column/column_normal.002.png", 0);
     ctx.roughColumn = loadTexture2D("textures/column/column_roughness.png", 0);
     ctx.albedoTeapot = loadTexture2D("textures/teapot/1df5a76d-fb2d-45d4-ae28-7265782ed03b.png", 1);
-
-    // Coming soon (replace textures)
     ctx.albedoSlenderman = loadTexture2D("textures/slenderman/Slenderman_Albedo.png", 1);
     ctx.normalSlenderman = loadTexture2D("textures/slenderman/Slender_Normal.png", 0);
     ctx.roughSlenderman = loadTexture2D("textures/slenderman/Slender_Roughness.png", 0);
@@ -164,8 +162,7 @@ int init()
     ctx.albedoLaterne = loadTexture2D("textures/trees/tree1/BarkDecidious0143_5_S.jpg", 1);
     ctx.normalLaterne = loadTexture2D("textures/cottage/cottage_normal.png", 0);
     ctx.roughLaterne = loadTexture2D("textures/trees/tree1/tree_bark_roughness.png", 0);
-
-
+    
     return 0;
 }
 
