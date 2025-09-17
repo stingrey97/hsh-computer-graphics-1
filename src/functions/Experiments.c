@@ -75,11 +75,12 @@ void vollbildschalter(GLFWwindow *window, Status *status)
                                  mode->width, mode->height, mode->refreshRate);
 
             status->vollbild = !status->vollbild;
-            
-        }else{
+        }
+        else
+        {
             glfwSetWindowMonitor(window, NULL,
-                             winX, winY, winW, winH, 0);
-            status->vollbild = !status->vollbild;            
+                                 winX, winY, winW, winH, 0);
+            status->vollbild = !status->vollbild;
         }
     }
     prevV = kn;
