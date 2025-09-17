@@ -21,12 +21,13 @@
 #define START_VERTICAL_ANGLE 0.0f
 #define FIXED_CAMERA
 #define CAMERA_HEIGHT 2.7f
+#define JUMP_FORCE 3.5f
 #define NO_DEBUG_MODE
 
 /*
  * Skybox
  */
-#define SKYBOX_DAY // Skybox texture to be load. Possible values: SKYBOX_DAY, SKYBOX_NIGHT, SKYBOX_MYSTIC
+#define SKYBOX_NIGHT // Skybox texture to be load. Possible values: SKYBOX_DAY, SKYBOX_NIGHT, SKYBOX_MYSTIC
 
 /*
  * Math
