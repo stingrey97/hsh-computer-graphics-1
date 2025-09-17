@@ -107,6 +107,15 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
     if (len3f(dir) > EPS)
         norm3f(dir, dir);
 
+    GLfloat dir2[3];
+    setVec3(dir2,
+            cosf(verticalAngle) * sinf(horizontalAngle),
+            0.f,
+            cosf(verticalAngle) * cosf(horizontalAngle));
+    // numerisch stabil halten
+    if (len3f(dir2) > EPS)
+        norm3f(dir2, dir2);
+
     // Strafe-Richtung (rechts) nur aus Yaw (keine Roll-Komponente)
     GLfloat right[3] = {
         sinf(horizontalAngle - 3.14159265f * 0.5f),
@@ -115,31 +124,35 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
     if (len3f(right) > EPS)
         norm3f(right, right);
 
-    float speedModyfier = KEY_SPEED * (glfwGetKey(context->window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) ? SPRINT_SPEED_MODYFIER : 1.f;
+    float speedModyfier = KEY_SPEED * ((glfwGetKey(context->window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) ? SPRINT_SPEED_MODYFIER : 1.f);
     
     // Bewegung: W/S vor-zurück entlang dir, A/D seitlich entlang right
     if (glfwGetKey(context->window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_UP) == GLFW_PRESS)
     {
         GLfloat step[3];
-        multiply3f(step, dir, deltaTime * speedModyfier);
+        multiply3f(step, dir2, deltaTime * speedModyfier);
+        step[1] = 0.f;
         plus3f(context->eye, context->eye, step);
     }
     if (glfwGetKey(context->window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_DOWN) == GLFW_PRESS)
     {
         GLfloat step[3];
-        multiply3f(step, dir, deltaTime * speedModyfier);
+        multiply3f(step, dir2, deltaTime * speedModyfier);
+        step[1] = 0.f;
         minus3f(context->eye, context->eye, step);
     }
     if (glfwGetKey(context->window, GLFW_KEY_D) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_RIGHT) == GLFW_PRESS)
     {
         GLfloat step[3];
         multiply3f(step, right, deltaTime * speedModyfier);
+        step[1] = 0.f;
         plus3f(context->eye, context->eye, step);
     }
     if (glfwGetKey(context->window, GLFW_KEY_A) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_LEFT) == GLFW_PRESS)
     {
         GLfloat step[3];
         multiply3f(step, right, deltaTime * speedModyfier);
+        step[1] = 0.f;
         minus3f(context->eye, context->eye, step);
     }
 
