@@ -294,7 +294,7 @@ void draw()
 
     // Wald
     setMaterialWood(&ctx);
-    drawForrest(3, M, V, P, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc,
+    drawForrest(MAX_TREE_COUNT, M, V, P, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc,
                 ctx.albedoBaum1und2, ctx.albedoBaum3, ctx.normalBaum, ctx.roughBaum,
                 &ctx.baumstamm1, &ctx.baumstamm2, &ctx.baumstamm3, ctx.uvScale);
 
