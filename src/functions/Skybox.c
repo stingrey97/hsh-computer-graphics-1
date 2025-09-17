@@ -13,9 +13,40 @@
 #include "ShaderLoader.h"
 #include "MathUtils.h"
 
-void initSkybox(AppContext *context)
+static const char *daytimeCubemap[6] =
+        {
+            "textures/skybox/daytime/px.png",
+            "textures/skybox/daytime/nx.png",
+            "textures/skybox/daytime/py.png",
+            "textures/skybox/daytime/ny.png",
+            "textures/skybox/daytime/pz.png",
+            "textures/skybox/daytime/nz.png",
+        };
+
+    static const char *mysticCubemap[6] =
+        {
+            "textures/skybox/mystic/px.png",
+            "textures/skybox/mystic/nx.png",
+            "textures/skybox/mystic/py.png",
+            "textures/skybox/mystic/ny.png",
+            "textures/skybox/mystic/pz.png",
+            "textures/skybox/mystic/nz.png",
+        };
+
+    static const char *nighttimeCubemap[6] =
+        {
+            "textures/skybox/nighttime/nightRT.png",
+            "textures/skybox/nighttime/nightLF.png",
+            "textures/skybox/nighttime/nightUP.png",
+            "textures/skybox/nighttime/nightDN.png",
+            "textures/skybox/nighttime/nightFT.png",
+            "textures/skybox/nighttime/nightBK.png",
+        };
+
+
+void initSkybox(AppContext *ctx)
 {
-    assert(context != NULL);
+    assert(ctx != NULL);
 
     const float skyboxVertices[] =
         {
@@ -50,54 +81,21 @@ void initSkybox(AppContext *context)
             3, 7, 6,
             6, 2, 3};
 
-#ifdef SKYBOX_DAY
-    const char *facesCubemap[6] =
-        {
-            "textures/skybox/daytime/px.png",
-            "textures/skybox/daytime/nx.png",
-            "textures/skybox/daytime/py.png",
-            "textures/skybox/daytime/ny.png",
-            "textures/skybox/daytime/pz.png",
-            "textures/skybox/daytime/nz.png",
-        };
-#endif
-#ifdef SKYBOX_MYSTIC
-    const char *facesCubemap[6] =
-        {
-            "textures/skybox/mystic/px.png",
-            "textures/skybox/mystic/nx.png",
-            "textures/skybox/mystic/py.png",
-            "textures/skybox/mystic/ny.png",
-            "textures/skybox/mystic/pz.png",
-            "textures/skybox/mystic/nz.png",
-        };
-#endif
-#ifdef SKYBOX_NIGHT
-    const char *facesCubemap[6] =
-        {
-            "textures/skybox/nighttime/nightRT.png",
-            "textures/skybox/nighttime/nightLF.png",
-            "textures/skybox/nighttime/nightUP.png",
-            "textures/skybox/nighttime/nightDN.png",
-            "textures/skybox/nighttime/nightFT.png",
-            "textures/skybox/nighttime/nightBK.png",
-        };
-#endif
-
     // Load Skybox program with Shaders
     const char *vertexPath = "shader/vertex/skyboxVertexShader.glsl";
     const char *fragmentPath = "shader/fragment/skyboxFragmentShader.glsl";
-    context->skyboxProgramID = loadShaders(vertexPath, fragmentPath);
+    ctx->skyboxProgramID = loadShaders(vertexPath, fragmentPath);
 
     // Load Cubemap Texture
-    context->skyboxTexture = loadCubemap(facesCubemap);
+    ctx->skyboxTexture = loadCubemap(nighttimeCubemap);
+    ctx->reflect = 0;
 
     // Create VAO, VBO, and EBO
     GLuint skyboxVBO, skyboxEBO;
-    glGenVertexArrays(1, &context->skyboxVAO);
+    glGenVertexArrays(1, &ctx->skyboxVAO);
     glGenBuffers(1, &skyboxVBO);
     glGenBuffers(1, &skyboxEBO);
-    glBindVertexArray(context->skyboxVAO);
+    glBindVertexArray(ctx->skyboxVAO);
     glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, skyboxEBO);
@@ -125,6 +123,15 @@ void drawSkybox(AppContext *ctx, GLfloat *V, GLfloat *P)
 
     glBindVertexArray(ctx->skyboxVAO);
     glActiveTexture(GL_TEXTURE0);
+
+    if(glfwGetKey(ctx->window, GLFW_KEY_8) == GLFW_PRESS) {
+        ctx->skyboxTexture = loadCubemap(mysticCubemap);
+    } else if(glfwGetKey(ctx->window, GLFW_KEY_9) == GLFW_PRESS) {
+        ctx->skyboxTexture = loadCubemap(daytimeCubemap);
+    } else if(glfwGetKey(ctx->window, GLFW_KEY_0) == GLFW_PRESS) {
+        ctx->skyboxTexture = loadCubemap(nighttimeCubemap);
+    }
+
     glBindTexture(GL_TEXTURE_CUBE_MAP, ctx->skyboxTexture);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 

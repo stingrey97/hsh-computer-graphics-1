@@ -66,6 +66,7 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
     // Maus lesen & zurück in Mitte setzen
     glfwGetCursorPos(context->window, &xMousePos, &yMousePos);
     glfwSetCursorPos(context->window, context->width / 2, context->height / 2);
+        
 
     // Delta-Zeit
     const double currentTime = glfwGetTime();
@@ -114,29 +115,31 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
     if (len3f(right) > EPS)
         norm3f(right, right);
 
+    float speedModyfier = KEY_SPEED * (glfwGetKey(context->window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) ? SPRINT_SPEED_MODYFIER : 1.f;
+    
     // Bewegung: W/S vor-zurück entlang dir, A/D seitlich entlang right
     if (glfwGetKey(context->window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_UP) == GLFW_PRESS)
     {
         GLfloat step[3];
-        multiply3f(step, dir, deltaTime * KEY_SPEED);
+        multiply3f(step, dir, deltaTime * speedModyfier);
         plus3f(context->eye, context->eye, step);
     }
     if (glfwGetKey(context->window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_DOWN) == GLFW_PRESS)
     {
         GLfloat step[3];
-        multiply3f(step, dir, deltaTime * KEY_SPEED);
+        multiply3f(step, dir, deltaTime * speedModyfier);
         minus3f(context->eye, context->eye, step);
     }
     if (glfwGetKey(context->window, GLFW_KEY_D) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_RIGHT) == GLFW_PRESS)
     {
         GLfloat step[3];
-        multiply3f(step, right, deltaTime * KEY_SPEED);
+        multiply3f(step, right, deltaTime * speedModyfier);
         plus3f(context->eye, context->eye, step);
     }
     if (glfwGetKey(context->window, GLFW_KEY_A) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_LEFT) == GLFW_PRESS)
     {
         GLfloat step[3];
-        multiply3f(step, right, deltaTime * KEY_SPEED);
+        multiply3f(step, right, deltaTime * speedModyfier);
         minus3f(context->eye, context->eye, step);
     }
 

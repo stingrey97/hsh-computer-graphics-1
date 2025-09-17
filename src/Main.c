@@ -69,6 +69,9 @@ int init()
     glfwMakeContextCurrent(ctx.window);
     glewInit();
 
+    // verarbeitung der Einagen über Sticky Keys
+    glfwSetInputMode(ctx.window, GLFW_STICKY_KEYS, GLFW_TRUE);
+
     // Kamera
     setVec3(ctx.eye, 1, 0, 0);
     setVec3(ctx.look, 0, 0, 0);
@@ -154,9 +157,9 @@ int init()
     ctx.albedoTeapot = loadTexture2D("textures/teapot/1df5a76d-fb2d-45d4-ae28-7265782ed03b.png", 1);
 
     // Coming soon (replace textures)
-    ctx.albedoSlenderman = loadTexture2D("textures/trees/tree1/BarkDecidious0143_5_S.jpg", 1);
-    ctx.normalSlenderman = loadTexture2D("textures/cottage/cottage_normal.png", 0);
-    ctx.roughSlenderman = loadTexture2D("textures/trees/tree1/tree_bark_roughness.png", 0);
+    ctx.albedoSlenderman = loadTexture2D("textures/slenderman/Slenderman_Albedo.png", 1);
+    ctx.normalSlenderman = loadTexture2D("textures/slenderman/Slender_Normal.png", 0);
+    ctx.roughSlenderman = loadTexture2D("textures/slenderman/Slender_Roughness.png", 0);
 
     ctx.albedoLaterne = loadTexture2D("textures/trees/tree1/BarkDecidious0143_5_S.jpg", 1);
     ctx.normalLaterne = loadTexture2D("textures/cottage/cottage_normal.png", 0);
@@ -198,12 +201,16 @@ void draw()
     setPointLight(ctx.uLamp_position, V, 0.0f, 5.0f, 0.0f);
 
     GLfloat M[16];
+    
+    if(glfwGetKey(ctx.window, GLFW_KEY_7) == GLFW_PRESS) {
+        ctx.reflect = ctx.reflect == 0 ? 1 : 0;
+    }
 
     // ---------- Opaque rendering ----------
     glDisable(GL_BLEND);
 
         // Test: Make everything reflective
-        // glUniform1i(ctx.uUseEnvMap, 1);
+        glUniform1i(ctx.uUseEnvMap, ctx.reflect); //Tag/Nacht Shit 1/0
 
 
     // Cottage
@@ -287,7 +294,7 @@ void draw()
 
     // Wald
     setMaterialWood(&ctx);
-    drawForrest(80, M, V, P, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc,
+    drawForrest(3, M, V, P, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc,
                 ctx.albedoBaum1und2, ctx.albedoBaum3, ctx.normalBaum, ctx.roughBaum,
                 &ctx.baumstamm1, &ctx.baumstamm2, &ctx.baumstamm3, ctx.uvScale);
 
