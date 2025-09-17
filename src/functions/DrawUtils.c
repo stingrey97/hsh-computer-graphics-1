@@ -100,7 +100,6 @@ void drawForrest(int count,
 {
     // Gleicher Seed bäume sind gleich
     srand(1337);
-
     const float rMin = 20.0f; // innen frei
     const float rMax = 45.0f; // außen Wald
     GLuint albedo;
@@ -119,6 +118,7 @@ void drawForrest(int count,
     glBindTexture(GL_TEXTURE_2D, normalTex);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, roughTex);
+    glUniform2f(uvScale, 1500.0f, 1500.0f);
 
     for (int i = 0; i < count; ++i)
     {
@@ -160,7 +160,6 @@ void drawForrest(int count,
         // 4) Texturen binden
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, albedo);
-        glUniform2f(uvScale, 1500.0f, 1500.0f);
 
         // 5) Modelmatrix
         identity(M);
