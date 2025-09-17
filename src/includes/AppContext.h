@@ -55,7 +55,7 @@ typedef struct
     GLint albedoLoc, normalLoc, roughnessLoc, uvScale;
 
     // Textures
-    GLuint albedoCottage, normalCottage, roughnessCottage;
+    GLuint albedoCottage, normalCottage;
     GLuint albedoColumn, normalColumn, roughColumn;
     GLuint albedoGras, normalGras, roughnessGras;
     GLuint albedoBaum1und2, albedoBaum3, normalBaum, roughBaum;

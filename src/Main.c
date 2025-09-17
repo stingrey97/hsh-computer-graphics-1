@@ -227,8 +227,6 @@ void draw()
     glBindTexture(GL_TEXTURE_2D, ctx.albedoCottage);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, ctx.normalCottage);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, ctx.roughnessCottage);
     identity(M);
     translate(M, M, (GLfloat[]){25.0f, 0.0f, -15.0f});
     rotateY(M, M, 20);
@@ -399,7 +397,7 @@ int main(void)
         else
             snprintf(title, sizeof(title), "%s | FPS: %.1f | GPU: …",
                      INIT_WINDOW_TITLE, fps);
-        // glfwSetWindowTitle(ctx.window, title);
+        glfwSetWindowTitle(ctx.window, title);
 
         // Ping-Pong umschalten
         cur = 1 - cur;
