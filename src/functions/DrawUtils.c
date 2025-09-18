@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdbool.h>
 
 // OpenGL
 #include <GL/glew.h>
@@ -15,6 +16,7 @@
 #include "Mesh.h"
 #include "Constants.h"
 #include "MathUtils.h"
+#include "Constants.h"
 #include "Assertions.h"
 
 static GLfloat position[2];
@@ -171,12 +173,12 @@ void drawForrest(int count,
     }
 }
 
-void drawSlenderman(GLfloat *M, const GLfloat *V, const GLfloat *P,
-                    GLint MVLoc, GLint MVPLoc, GLint NormalMLoc,
-                    GLuint albedo, GLuint normalTex, GLuint roughTex,
-                    Mesh *mesh,
-                    GLint uvScale,
-                    const GLfloat *eye)
+int drawSlenderman(GLfloat *M, const GLfloat *V, const GLfloat *P,
+                   GLint MVLoc, GLint MVPLoc, GLint NormalMLoc,
+                   GLuint albedo, GLuint normalTex, GLuint roughTex,
+                   Mesh *mesh,
+                   GLint uvScale,
+                   const GLfloat *eye)
 {
     double timeNow = glfwGetTime();     // Sekunden seit Programmstart
     double cycle = fmod(timeNow, 30.0); // 30-Sekunden-Periode
@@ -190,7 +192,9 @@ void drawSlenderman(GLfloat *M, const GLfloat *V, const GLfloat *P,
     float yawRad = atan2f(toEyeX, toEyeZ);
     float yawDeg = yawRad * (180.0f / (float)PI);
 
-    if (cycle > 20.0)
+    static bool shouldPlay = true;
+
+    if (cycle > 20.0f)
     {
         // Golderner Teapot
         glUniform2f(uvScale, 1.0f, 1.0f);
@@ -205,10 +209,17 @@ void drawSlenderman(GLfloat *M, const GLfloat *V, const GLfloat *P,
         rotateY(M, M, yawDeg);
         scale(M, M, (GLfloat[]){0.75f, 0.75f, 0.75f});
         drawMeshWithModel(mesh, V, P, M, MVLoc, MVPLoc, NormalMLoc);
+        if (cycle > 20.0f && cycle < 21.0f && shouldPlay)
+        {
+            shouldPlay = false;
+            return 1;
+        }
     }
     else
     {
+        shouldPlay = true;
         position[0] = eye[0] + blickRichtung[0] * 23;
         position[1] = eye[2] + blickRichtung[2] * 23;
     }
+    return 0;
 }

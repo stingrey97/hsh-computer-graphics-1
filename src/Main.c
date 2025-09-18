@@ -11,6 +11,8 @@
 // Third party libs
 #define STB_IMAGE_IMPLEMENTATION
 #include "includes/ImageLoader.h"
+#define MINIAUDIO_IMPLEMENTATION
+#include "includes/AudioLoader.h"
 
 // Own libs
 #include "Constants.h"
@@ -38,12 +40,14 @@ void framebuffer_size_callback(GLFWwindow *window, int cb_width, int cb_height)
     glViewport(0, 0, cb_width, cb_height);
 }
 
-void updateFpsCounter(GLFWwindow* w) {
+void updateFpsCounter(GLFWwindow *w)
+{
     static double prev = 0.0;
     static int frames = 0;
     double t = glfwGetTime();
     double dt = t - prev;
-    if (dt >= 1.0) {
+    if (dt >= 1.0)
+    {
         char title[128];
         snprintf(title, sizeof(title), "%s  |  FPS: %.1f", INIT_WINDOW_TITLE, frames / dt);
         glfwSetWindowTitle(w, title);
@@ -58,6 +62,18 @@ int init()
     ctx.width = INIT_WINDOW_WIDTH;
     ctx.height = INIT_WINDOW_HEIGHT;
 
+    // Sound
+    if (ma_engine_init(NULL, &ctx.soundEngine) != MA_SUCCESS)
+    {
+        return -1;
+    }
+    ma_sound_init_from_file(&ctx.soundEngine, "sounds/horror.wav", 0, NULL, NULL, &ctx.slendermanSpawnSound);
+    ma_sound_init_from_file(&ctx.soundEngine, "sounds/leaves.wav", 0, NULL, NULL, &ctx.stepSound);
+    ma_sound_init_from_file(&ctx.soundEngine, "sounds/switch.wav", 0, NULL, NULL, &ctx.switchSound);
+    ma_sound_init_from_file(&ctx.soundEngine, "sounds/ambient.wav", 0, NULL, NULL, &ctx.backgroundMusic);
+    ma_sound_set_looping(&ctx.backgroundMusic, MA_TRUE);
+
+    // GLFW
     glfwInit();
     glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -74,6 +90,7 @@ int init()
         return -1;
     }
 
+    // Viewport + callback
     glfwSetFramebufferSizeCallback(ctx.window, framebuffer_size_callback);
     int fbw, fbh;
     glfwGetFramebufferSize(ctx.window, &fbw, &fbh);
@@ -81,6 +98,7 @@ int init()
     ctx.height = fbh;
     glViewport(0, 0, fbw, fbh);
 
+    // GLEW
     glfwMakeContextCurrent(ctx.window);
     glewInit();
     glfwSwapInterval(1);
@@ -94,16 +112,16 @@ int init()
     setVec3(ctx.up, 0, 1, 0);
     initCamera(&ctx);
 
-    // Shader laden + aktivieren
+    // Shader
     const char *vertexPath = "shader/vertex/vertexShader.glsl";
     const char *fragmentPath = "shader/fragment/fragmentShader.glsl";
     ctx.programID = loadShaders(vertexPath, fragmentPath);
     glUseProgram(ctx.programID);
 
-    // Uniform-Locations (Hauptprogramm)
+    // Uniform-Location
     loadUniforms(&ctx);
 
-    // Licht/Nebel Defaults
+    // Light / fog default values
     glUniform1i(ctx.uSun_enabled, 1);
     glUniform1i(ctx.uLamp_enabled, 1);
     glUniform1i(ctx.uSpot_enabled, 1);
@@ -139,7 +157,7 @@ int init()
     glUseProgram(ctx.skyboxProgramID);
     glUniform1i(glGetUniformLocation(ctx.skyboxProgramID, "skybox"), 0); // Skybox-Sampler auf TU0
 
-    // Zurück zum Hauptprogramm und Sampler/Defaults setzen
+    // Sampler/Defaults
     glUseProgram(ctx.programID);
     glUniform1i(ctx.albedoLoc, 0);
     glUniform1i(ctx.normalLoc, 1);
@@ -149,12 +167,12 @@ int init()
     glUniform1f(ctx.uIOR, 1.5f);
     glUniform1f(ctx.uEnvStrength, 0.85f);
 
-    // Cubemap (Skybox-Textur) auf TU3 für das Hauptprogramm binden
+    // Cubemap (Skybox) set on TU3
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_CUBE_MAP, ctx.skyboxTexture);
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-    // 2D-Texturen
+    // 2D-Textures
     ctx.albedoCottage = loadTexture2D("textures/cottage/cottage_diffuse.png", 1);
     ctx.normalCottage = loadTexture2D("textures/cottage/cottage_normal.png", 0);
     ctx.albedoGras = loadTexture2D("textures/gras/grass1-albedo3.png", 1);
@@ -299,9 +317,13 @@ void draw()
 
     // Slenderman (opak)
     setMaterialGrayPillar(&ctx);
-    drawSlenderman(M, V, P, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc,
-                   ctx.albedoSlenderman, ctx.normalSlenderman, ctx.roughSlenderman,
-                   &ctx.slenderman, ctx.uvScale, ctx.eye);
+
+    if (drawSlenderman(M, V, P, ctx.MVLoc, ctx.MVPLoc, ctx.NormalMLoc,
+                       ctx.albedoSlenderman, ctx.normalSlenderman, ctx.roughSlenderman,
+                       &ctx.slenderman, ctx.uvScale, ctx.eye) == 1)
+    {
+        ma_sound_start(&ctx.slendermanSpawnSound);
+    }
 
     // Wald
     setMaterialWood(&ctx);
@@ -343,6 +365,9 @@ int main(void)
     chdir("src");
     assert(init() == 0);
 
+    // Play background music
+    ma_sound_start(&ctx.backgroundMusic);
+
     // Kontext sicher binden und VSync setzen
     glfwMakeContextCurrent(ctx.window);
 
@@ -350,11 +375,12 @@ int main(void)
     GLuint q[2];
     glGenQueries(2, q);
 
+    // Run tests
     testeFunktionen();
 
     // FPS-Variablen
     double t0 = glfwGetTime();
-    int    frames = 0;
+    int frames = 0;
 
     // Ping-Pong-Index und Flag, ob ein Vorframe existiert
     int cur = 0;
@@ -380,12 +406,15 @@ int main(void)
 
         // --- GPU-Zeit vom Vorframe blockierend abholen ---
         double gpu_ms = -1.0;
-        if (have_prev) {
+        if (have_prev)
+        {
             // GL_QUERY_RESULT blockiert, bis Resultat vorliegt -> garantiert ein Wert
             GLuint64 elapsed_ns = 0;
             glGetQueryObjectui64v(q[1 - cur], GL_QUERY_RESULT, &elapsed_ns);
             gpu_ms = (double)elapsed_ns / 1e6; // ns -> ms
-        } else {
+        }
+        else
+        {
             have_prev = 1; // nach dem ersten Frame steht ab jetzt ein Vorframe-Ergebnis bereit
         }
 
@@ -403,13 +432,20 @@ int main(void)
         cur = 1 - cur;
 
         // FPS-Fenster jede Sekunde neu starten (stabilere Anzeige)
-        if (now - t0 >= 1.0) {
+        if (now - t0 >= 1.0)
+        {
             t0 = now;
             frames = 0;
         }
     }
 
+    // Clean up
     glDeleteQueries(2, q);
     glfwTerminate();
+    ma_sound_uninit(&ctx.backgroundMusic);
+    ma_sound_uninit(&ctx.stepSound);
+    ma_sound_uninit(&ctx.slendermanSpawnSound);
+    ma_sound_uninit(&ctx.switchSound);
+    ma_engine_uninit(&ctx.soundEngine);
     return 0;
 }

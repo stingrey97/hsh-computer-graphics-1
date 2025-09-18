@@ -4,6 +4,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "AudioLoader.h"
+
 #include "Mesh.h"
 #include "Experiments.h"
 
@@ -64,8 +66,15 @@ typedef struct
     GLuint albedoSlenderman, normalSlenderman, roughSlenderman;
     GLuint albedoLaterne, normalLaterne, roughLaterne;
 
-    // Licht Status
+    // Licht/Vollbild Status
     Status status;
+
+    // Audio
+    ma_engine soundEngine;
+    ma_sound backgroundMusic;
+    ma_sound stepSound;
+    ma_sound slendermanSpawnSound;
+    ma_sound switchSound;
 
 } AppContext;
 

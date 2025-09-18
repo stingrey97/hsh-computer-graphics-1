@@ -29,7 +29,8 @@ extern void drawForrest(int count,
                         Mesh *meshA, Mesh *meshB, Mesh *meshC,
                         GLint uvScale);
 
-extern void drawSlenderman(GLfloat *M, const GLfloat *V, const GLfloat *P,
+// Returns 1 if slanderman just spawned (for audio playback)
+extern int drawSlenderman(GLfloat *M, const GLfloat *V, const GLfloat *P,
                     GLint MVLoc, GLint MVPLoc, GLint NormalMLoc,
                     GLuint albedo, GLuint normalTex, GLuint roughTex,
                     Mesh *mesh,
