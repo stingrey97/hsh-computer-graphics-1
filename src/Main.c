@@ -245,6 +245,8 @@ void draw()
     glBindTexture(GL_TEXTURE_2D, ctx.albedoCottage);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, ctx.normalCottage);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, ctx.roughnessGras);
     identity(M);
     translate(M, M, (GLfloat[]){25.0f, 0.0f, -15.0f});
     rotateY(M, M, 20);
