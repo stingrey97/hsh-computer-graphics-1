@@ -15,10 +15,8 @@
 
 void calculateTangente(const GLfloat *vertices, int vertexCount, GLfloat *tangenten_out)
 {
-    // Layout: [x y z u v nx ny nz] pro Vertex
     const int stride = 8;
 
-    // Akkumulatoren
     GLfloat *tanSum = (GLfloat *)calloc(vertexCount * 3, sizeof(GLfloat));
     GLfloat *bitSum = (GLfloat *)calloc(vertexCount * 3, sizeof(GLfloat));
 
@@ -28,17 +26,14 @@ void calculateTangente(const GLfloat *vertices, int vertexCount, GLfloat *tangen
         const GLfloat *v1 = &vertices[(i + 1) * stride];
         const GLfloat *v2 = &vertices[(i + 2) * stride];
 
-        // Positionen
         float p0x = v0[0], p0y = v0[1], p0z = v0[2];
         float p1x = v1[0], p1y = v1[1], p1z = v1[2];
         float p2x = v2[0], p2y = v2[1], p2z = v2[2];
 
-        // UVs
         float u0 = v0[3], v0u = v0[4];
         float u1 = v1[3], v1u = v1[4];
         float u2 = v2[3], v2u = v2[4];
 
-        // Kanten
         float e1x = p1x - p0x, e1y = p1y - p0y, e1z = p1z - p0z;
         float e2x = p2x - p0x, e2y = p2y - p0y, e2z = p2z - p0z;
 
@@ -48,12 +43,10 @@ void calculateTangente(const GLfloat *vertices, int vertexCount, GLfloat *tangen
         float denom = du1 * dv2 - du2 * dv1;
         if (fabsf(denom) < 1e-12f)
         {
-            // degenerierte UVs: dieses Dreieck trägt nicht sinnvoll zu T/B bei
             continue;
         }
         float f = 1.0f / denom;
 
-        // Dreiecks-T/B
         float Tx = f * (dv2 * e1x - dv1 * e2x);
         float Ty = f * (dv2 * e1y - dv1 * e2y);
         float Tz = f * (dv2 * e1z - dv1 * e2z);
@@ -62,7 +55,6 @@ void calculateTangente(const GLfloat *vertices, int vertexCount, GLfloat *tangen
         float By = f * (-du2 * e1y + du1 * e2y);
         float Bz = f * (-du2 * e1z + du1 * e2z);
 
-        // Auf die drei Vertex-Akkus addieren
         int i0 = (i + 0) * 3, i1 = (i + 1) * 3, i2 = (i + 2) * 3;
         tanSum[i0 + 0] += Tx;
         tanSum[i0 + 1] += Ty;
@@ -85,24 +77,20 @@ void calculateTangente(const GLfloat *vertices, int vertexCount, GLfloat *tangen
         bitSum[i2 + 2] += Bz;
     }
 
-    // Finalisierung je Vertex: Gram-Schmidt, Handedness, Fallback wenn nötig
     for (int v = 0; v < vertexCount; ++v)
     {
         const GLfloat *V = &vertices[v * stride];
         float Nx = V[5], Ny = V[6], Nz = V[7];
 
-        // Tangenten-Summe orthogonalisieren gegen N
         float Tx = tanSum[v * 3 + 0], Ty = tanSum[v * 3 + 1], Tz = tanSum[v * 3 + 2];
 
-        // Fallback, falls zu klein (z. B. wegen Degeneraten): baue T aus N
         float lenT2 = Tx * Tx + Ty * Ty + Tz * Tz;
         if (lenT2 < 1e-20f)
         {
-            // wähle eine Hilfsachse, die nicht parallel zu N ist
             float ax = (fabsf(Nx) < 0.9f) ? 1.0f : 0.0f;
             float ay = (fabsf(Nx) < 0.9f) ? 0.0f : 1.0f;
             float az = 0.0f;
-            // T = normalize( cross( N, Hilfsachse ) )
+            
             float cx = Ny * az - Nz * ay;
             float cy = Nz * ax - Nx * az;
             float cz = Nx * ay - Ny * ax;
@@ -111,7 +99,6 @@ void calculateTangente(const GLfloat *vertices, int vertexCount, GLfloat *tangen
             Tz = cz;
         }
 
-        // Gram-Schmidt
         float dotNT = Nx * Tx + Ny * Ty + Nz * Tz;
         Tx -= Nx * dotNT;
         Ty -= Ny * dotNT;
@@ -128,11 +115,9 @@ void calculateTangente(const GLfloat *vertices, int vertexCount, GLfloat *tangen
             Tx = 1;
             Ty = 0;
             Tz = 0;
-        } // letzter Fallback
+        }
 
-        // Handedness aus aufsummierter Bitangente
         float Bx = bitSum[v * 3 + 0], By = bitSum[v * 3 + 1], Bz = bitSum[v * 3 + 2];
-        // sign = sign( dot( cross(N,T), Bsum ) )
         float cx = Ny * Tz - Nz * Ty;
         float cy = Nz * Tx - Nx * Tz;
         float cz = Nx * Ty - Ny * Tx;
@@ -154,15 +139,11 @@ void loadMesh(const char *filename, Mesh *out)
     assert(filename != NULL && out != NULL);
 
     int werte[4];
-    // read lines of OBJ4
     countLinesF(filename, werte);
     int vertexCount = werte[3];
     GLfloat *vertices = (GLfloat *)malloc(sizeof(GLfloat) * vertexCount * 8);
-    // lese das OBJ aus und fülle die Vertices
-    // 7 Werte pro Vertex: x, y, z, u, v, nx, ny, nz
     loadOBJ(filename, vertices, werte);
 
-    // Tangenten Speicherplatz
     GLfloat *tangenten = (GLfloat *)malloc(sizeof(GLfloat) * vertexCount * 4);
     calculateTangente(vertices, vertexCount, tangenten);
 
@@ -172,7 +153,6 @@ void loadMesh(const char *filename, Mesh *out)
     glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertexCount * 8, vertices, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    // create vertex array object
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);

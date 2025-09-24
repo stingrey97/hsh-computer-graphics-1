@@ -19,11 +19,8 @@ void initCamera(AppContext *context)
 {
     assert(context->window != NULL);
 
-    // Maus verstecken
     glfwSetInputMode(context->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    // Maus in mitte setzen
     glfwSetCursorPos(context->window, context->width / 2, context->height / 2);
-    // clear Events
     glfwPollEvents();
 
     copyVec3(context->INITIAL_EYE, context->eye);
@@ -51,59 +48,48 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
     static GLfloat verticalAngle = 0.f;
     static double lastTime = 0;
 
-    // Maus-Reset beim ersten Aufruf (verhindert großen ersten Delta-Sprung)
     if (isInitialized == 0)
     {
         lastTime = glfwGetTime();
         glfwSetCursorPos(context->window, context->width / 2, context->height / 2);
         xMousePos = context->width * 0.5;
         yMousePos = context->height * 0.5;
-        // Startwinkel aus Konstanten
         horizontalAngle = START_HORIZONTAL_ANGLE;
         verticalAngle = START_VERTICAL_ANGLE;
     }
 
-    // Maus lesen & zurück in Mitte setzen
     glfwGetCursorPos(context->window, &xMousePos, &yMousePos);
     glfwSetCursorPos(context->window, context->width / 2, context->height / 2);
-        
-
-    // Delta-Zeit
+    
     const double currentTime = glfwGetTime();
     const GLfloat deltaTime = (GLfloat)(currentTime - lastTime);
     lastTime = currentTime;
 
-    // Winkel-Update (Yaw/Pitch)
     horizontalAngle += MOUSE_SPEED * deltaTime * (GLfloat)(context->width / 2 - xMousePos);
     verticalAngle += MOUSE_SPEED * deltaTime * (GLfloat)(context->height / 2 - yMousePos);
     clamp(&verticalAngle, MAX_PITCH);
 
-    // Einmalige Initialisierung: Eye/Up übernehmen; optional Startblick aus INITIAL_LOOK ableiten
     if (isInitialized == 0)
     {
         copyVec3(context->eye, context->INITIAL_EYE);
         copyVec3(context->up, context->INITIAL_UP);
 
-        // Falls INITIAL_LOOK als Punkt (Center) gesetzt ist, Richtungswinkel daraus ableiten
         GLfloat initDir[3];
-        minus3f(initDir, context->INITIAL_LOOK, context->INITIAL_EYE); // dir ~ look - eye
+        minus3f(initDir, context->INITIAL_LOOK, context->INITIAL_EYE);
         if (len3f(initDir) > EPS)
         {
             norm3f(initDir, initDir);
-            // Winkel aus dir rekonstruieren
             verticalAngle = asinf(initDir[1]);
-            horizontalAngle = atan2f(initDir[0], initDir[2]); // x,z -> yaw
+            horizontalAngle = atan2f(initDir[0], initDir[2]);
         }
         isInitialized = 1;
     }
 
-    // Blickrichtung aus Winkeln (dir = Vorwärts-Vektor)
     GLfloat dir[3];
     setVec3(dir,
             cosf(verticalAngle) * sinf(horizontalAngle),
             sinf(verticalAngle),
             cosf(verticalAngle) * cosf(horizontalAngle));
-    // numerisch stabil halten
     if (len3f(dir) > EPS)
         norm3f(dir, dir);
 
@@ -112,11 +98,9 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
             cosf(verticalAngle) * sinf(horizontalAngle),
             0.f,
             cosf(verticalAngle) * cosf(horizontalAngle));
-    // numerisch stabil halten
     if (len3f(dir2) > EPS)
         norm3f(dir2, dir2);
 
-    // Strafe-Richtung (rechts) nur aus Yaw (keine Roll-Komponente)
     GLfloat right[3] = {
         sinf(horizontalAngle - 3.14159265f * 0.5f),
         0.f,
@@ -126,7 +110,6 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
 
     float speedModyfier = KEY_SPEED * ((glfwGetKey(context->window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) ? SPRINT_SPEED_MODYFIER : 1.f);
     
-    // Bewegung: W/S vor-zurück entlang dir, A/D seitlich entlang right
     if (glfwGetKey(context->window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(context->window, GLFW_KEY_UP) == GLFW_PRESS)
     {
         GLfloat step[3];
@@ -182,22 +165,17 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
         verticalSpeed = 0.f;
     }
 
-// Debug-Ausgabe
 #ifdef DEBUG_MODE
     printf("Höhe: %.2f\n", context->eye[1]);
 #endif
 #endif
 
-    // Center = eye + dir  (Punkt!), genau das erwartet lookAt nach Vorlesung
     GLfloat center[3];
     plus3f(center, context->eye, dir);
 
-    // View & Projection berechnen
     lookAt(V, context->eye, center, context->up);
-    static GLfloat FoV = FOV; // ggf. später per Mausrad anpassen
     perspective(P, FoV, (GLfloat)context->width / (GLfloat)context->height, 0.1f, 100.0f);
 
-    // Optional: für Debug-Zwecke context->look als Center mitführen (Punkt, nicht Richtung)
     copyVec3(context->look, center);
 
 #ifdef DEBUG_MODE

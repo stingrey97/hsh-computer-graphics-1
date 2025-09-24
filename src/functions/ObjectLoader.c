@@ -24,7 +24,6 @@ typedef struct
     int v, vt, vn;
 } FaceIndex;
 
-// wie viele v/t/vn/f zeilen gibt es um entsprechende arrays zu allokieren
 void countLinesF(const char *filename, int *werte)
 {
     assert(filename != NULL && werte != NULL);
@@ -63,7 +62,6 @@ void countLinesF(const char *filename, int *werte)
     fclose(file);
 }
 
-// Datei erneut öffnen und entsprechende Vertices erstellen Werte = v/vt/vn/f  F wird direkt in out geschrieben
 void loadOBJ(const char *filename, GLfloat *out, int *werte)
 {
     FILE *file = fopen(filename, "r");
@@ -109,14 +107,13 @@ void loadOBJ(const char *filename, GLfloat *out, int *werte)
 
             for (int i = 0; i < 3; i++)
             {
-                // Vertices bzw Postion
                 out[iF] = vArray[merke[i].v - 1].x;
                 out[iF + 1] = vArray[merke[i].v - 1].y;
                 out[iF + 2] = vArray[merke[i].v - 1].z;
-                // Texture Koordinaten
+
                 out[iF + 3] = vtArray[merke[i].vt - 1].u;
                 out[iF + 4] = vtArray[merke[i].vt - 1].v;
-                // Normale
+                
                 out[iF + 5] = vnArray[merke[i].vn - 1].x;
                 out[iF + 6] = vnArray[merke[i].vn - 1].y;
                 out[iF + 7] = vnArray[merke[i].vn - 1].z;
