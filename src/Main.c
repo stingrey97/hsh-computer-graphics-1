@@ -148,7 +148,6 @@ int init()
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
-    glEnable(GL_BLEND); // wird für den Glas-Pass genutzt
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(0.17f, 0.19f, 0.21f, 1.0f);
 
