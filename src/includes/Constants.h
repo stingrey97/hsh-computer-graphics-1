@@ -42,6 +42,6 @@
 /*
  * Enviroment 
  */
-#define MAX_TREE_COUNT 120
+#define MAX_TREE_COUNT 100
 
 #endif

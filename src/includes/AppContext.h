@@ -23,7 +23,7 @@ typedef struct
     GLuint skyboxProgramID;
     GLuint skyboxVAO;
     GLuint skyboxTexture;
-    GLint  reflect;
+    GLint reflect;
 
     // Camera
     GLfloat INITIAL_EYE[3], INITIAL_LOOK[3], INITIAL_UP[3];
@@ -32,16 +32,16 @@ typedef struct
     // Material
     GLint uMat_emission, uMat_ambient, uMat_diffuse, uMat_specular, uMat_shininess;
 
-    // Richtungslicht (struct lightSourceR richtungslicht)
+    // Directional light (struct lightSourceR richtungslicht)
     GLint uSun_enabled, uSun_direction, uSun_ambient, uSun_diffuse, uSun_specular;
 
-    // Punktlicht (struct lightSourceP punktlicht)
+    // Point light (struct lightSourceP punktlicht)
     GLint uLamp_enabled, uLamp_position, uLamp_ambient, uLamp_diffuse, uLamp_specular, uLamp_linear, uLamp_quadratic;
 
-    // Spotlicht (struct lightSourceS spotlicht)
+    // Spotlight (struct lightSourceS spotlicht)
     GLint uSpot_enabled, uSpot_position, uSpot_direction, uSpot_innerCone, uSpot_outerCone, uSpot_ambient, uSpot_diffuse, uSpot_specular, uSpot_linear, uSpot_quadratic;
 
-    // Nebel (struct fog nebel)
+    // Fog (struct fog nebel)
     GLint uFogColor, uFogDensity, uFogEnabled;
 
     // Uniform Standorte
@@ -50,7 +50,7 @@ typedef struct
     // Mesh
     Mesh cube, teapot, column, gras, cottage, baumstamm1, baumstamm2, baumstamm3, slenderman, laterne;
 
-    // Environment mapping
+    // Environment mapping (Reflections)
     GLint uEnvMap, uUseEnvMap, uIOR, uEnvStrength, uViewRotLoc;
 
     // Texture uniform
@@ -66,7 +66,7 @@ typedef struct
     GLuint albedoSlenderman, normalSlenderman, roughSlenderman;
     GLuint albedoLaterne, normalLaterne, roughLaterne;
 
-    // Licht/Vollbild Status
+    // Toggle lights and fullscreen settings
     Status status;
 
     // Audio

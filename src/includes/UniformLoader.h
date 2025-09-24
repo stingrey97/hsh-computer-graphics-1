@@ -3,6 +3,7 @@
 
 #include "AppContext.h"
 
+// Loads and initializes all shader uniform locations into the application context
 extern void loadUniforms(AppContext *ctx);
 
 #endif
