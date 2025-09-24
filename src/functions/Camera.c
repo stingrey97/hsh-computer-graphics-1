@@ -174,7 +174,7 @@ void camera(GLfloat *V, GLfloat *P, AppContext *context)
     plus3f(center, context->eye, dir);
 
     lookAt(V, context->eye, center, context->up);
-    perspective(P, FoV, (GLfloat)context->width / (GLfloat)context->height, 0.1f, 100.0f);
+    perspective(P, FOV, (GLfloat)context->width / (GLfloat)context->height, 0.1f, 100.0f);
 
     copyVec3(context->look, center);
 
