@@ -21,7 +21,7 @@ GLuint loadTexture2D(const char *path, int useRGB)
     if (!textureBuffer)
     {
         printf("stbi_load FAILED for '%s' : %s\n", path, stbi_failure_reason());
-        return 0; // invalid texture id
+        return 0;
     }
     printf("Loaded '%s'  %dx%d  channels=%d\n", path, textureWidth, textureHeight, bitsPerPixel);
 
@@ -66,7 +66,6 @@ GLuint loadCubemap(const char *faces[6])
     glGenTextures(1, &tex);
     glBindTexture(GL_TEXTURE_CUBE_MAP, tex);
 
-    // Save and set unpack alignment to 1
     GLint prevUnpackAlign = 0;
     glGetIntegerv(GL_UNPACK_ALIGNMENT, &prevUnpackAlign);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -111,7 +110,6 @@ GLuint loadCubemap(const char *faces[6])
         stbi_image_free(data);
     }
 
-    // Restore unpack alignment
     glPixelStorei(GL_UNPACK_ALIGNMENT, prevUnpackAlign);
 
     if (!ok)
@@ -122,7 +120,6 @@ GLuint loadCubemap(const char *faces[6])
         return 0;
     }
 
-    // Filtering and wrapping
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

@@ -60,13 +60,11 @@ GLuint loadShaders(const char *vertex_file_path, const char *fragment_file_path)
     GLint Result = GL_FALSE;
     int InfoLogLength;
 
-    // Compile Vertex Shader
     printf("Compiling shader: %s\n", vertex_file_path);
     const char *VertexSourcePointer = VertexShaderCode;
     glShaderSource(VertexShaderID, 1, &VertexSourcePointer, NULL);
     glCompileShader(VertexShaderID);
 
-    // Check Vertex Shader
     glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
     glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
     if (InfoLogLength > 0)
@@ -78,13 +76,11 @@ GLuint loadShaders(const char *vertex_file_path, const char *fragment_file_path)
         free(VertexShaderErrorMessage);
     }
 
-    // Compile Fragment Shader
     printf("Compiling shader: %s\n", fragment_file_path);
     const char *FragmentSourcePointer = FragmentShaderCode;
     glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer, NULL);
     glCompileShader(FragmentShaderID);
 
-    // Check Fragment Shader
     glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
     glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
     if (InfoLogLength > 0)
@@ -96,14 +92,12 @@ GLuint loadShaders(const char *vertex_file_path, const char *fragment_file_path)
         free(FragmentShaderErrorMessage);
     }
 
-    // Link the program
     printf("Linking program\n");
     GLuint ProgramID = glCreateProgram();
     glAttachShader(ProgramID, VertexShaderID);
     glAttachShader(ProgramID, FragmentShaderID);
     glLinkProgram(ProgramID);
 
-    // Check the program
     glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
     glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
     if (InfoLogLength > 0)

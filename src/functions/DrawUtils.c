@@ -57,7 +57,6 @@ void drawtransparentMeshWithModel(const Mesh *m,
     assert(isValidMatrix16f(model));
     assert(MVLoc >= 0 && MVPLoc >= 0 && NormalMLoc >= 0);
 
-    // Matrizen vorbereiten (einmal) – wird in beiden Pässen benutzt
     GLfloat MV[16], MVP[16], NormalM[9];
     mat4f_mul_mat4f(MV, viewMatrix, model);
     mat4f_mul_mat4f(MVP, projMatrix, MV);
@@ -69,24 +68,22 @@ void drawtransparentMeshWithModel(const Mesh *m,
 
     glBindVertexArray(m->vao);
 
-    glDepthMask(GL_FALSE); // kein Z-Write für Transparenz
+    glDepthMask(GL_FALSE);
 
-    glCullFace(GL_FRONT); // Pass 1: Rückseiten
+    glCullFace(GL_FRONT);
     glDrawArrays(GL_TRIANGLES, 0, m->count);
 
-    glCullFace(GL_BACK); // Pass 2: Vorderseiten
+    glCullFace(GL_BACK);
     glDrawArrays(GL_TRIANGLES, 0, m->count);
 
     glDepthMask(GL_TRUE);
 }
 
-// Zahl zwischen 0 und 1
 float frand01(void)
 {
     return (float)rand() / (float)RAND_MAX;
 }
 
-// Zahl zwischen a und b
 float frand(float a, float b)
 {
     return a + (b - a) * frand01();
@@ -100,10 +97,9 @@ void drawForrest(int count,
                  Mesh *meshA, Mesh *meshB, Mesh *meshC,
                  GLint uvScale)
 {
-    // Gleicher Seed bäume sind gleich
     srand(1337);
-    const float rMin = 20.0f; // innen frei
-    const float rMax = 45.0f; // außen Wald
+    const float rMin = 20.0f;
+    const float rMax = 45.0f;
     GLuint albedo;
     Mesh *mesh;
     int m;
@@ -115,7 +111,6 @@ void drawForrest(int count,
     float rotYdeg;
     float s;
 
-    // Konstant: Normal und Roughness einmal binden
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, normalTex);
     glActiveTexture(GL_TEXTURE2);
@@ -124,7 +119,6 @@ void drawForrest(int count,
 
     for (int i = 0; i < count; ++i)
     {
-        // 1) Variante wählen
         if (frand01() < 0.5f)
         {
             albedo = albedoA;
@@ -148,22 +142,18 @@ void drawForrest(int count,
             mesh = meshC;
         }
 
-        // 2) Position auf einem Ring mit leichtem Jitter
         baseAngle = 2.0f * (float)PI * ((float)i / (float)count);
-        angle = baseAngle + frand(-0.25f, 0.25f); // etwas streuen
+        angle = baseAngle + frand(-0.25f, 0.25f);
         radius = frand(rMin, rMax);
         x = cosf(angle) * radius;
         z = sinf(angle) * radius;
 
-        // 3) Rotation und Scale
         rotYdeg = frand(0.0f, 360.0f);
         s = frand(0.6f, 1.0f);
 
-        // 4) Texturen binden
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, albedo);
 
-        // 5) Modelmatrix
         identity(M);
         translate(M, M, (GLfloat[]){x, 0.0f, z});
         rotateY(M, M, rotYdeg);
@@ -180,10 +170,9 @@ int drawSlenderman(GLfloat *M, const GLfloat *V, const GLfloat *P,
                    GLint uvScale,
                    const GLfloat *eye)
 {
-    double timeNow = glfwGetTime();     // Sekunden seit Programmstart
-    double cycle = fmod(timeNow, 30.0); // 30-Sekunden-Periode
+    double timeNow = glfwGetTime();
+    double cycle = fmod(timeNow, 30.0);
 
-    // Slenderman soll zu uns gucken
     GLfloat blickRichtung[] = {-V[2], 0, -V[10]};
     norm3f(blickRichtung, blickRichtung);
 
@@ -196,7 +185,6 @@ int drawSlenderman(GLfloat *M, const GLfloat *V, const GLfloat *P,
 
     if (cycle > 20.0f)
     {
-        // Golderner Teapot
         glUniform2f(uvScale, 1.0f, 1.0f);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, albedo);

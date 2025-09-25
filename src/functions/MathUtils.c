@@ -422,12 +422,12 @@ void lookAt(GLfloat *out, const GLfloat *eye, const GLfloat *look, const GLfloat
 
     // 1) n = Eye - Look
     minus3f(n, eye, look);
-    assert(len3f(n) > EPS); // Eye != Look
+    assert(len3f(n) > EPS);
     norm3f(n, n);
 
     // 2) u = Up × n
     cross3f(u, up, n);
-    assert(len3f(u) > EPS); // Up darf nicht parallel zu n sein
+    assert(len3f(u) > EPS);
     norm3f(u, u);
 
     // 3) v = n × u
@@ -443,7 +443,7 @@ void lookAt(GLfloat *out, const GLfloat *eye, const GLfloat *look, const GLfloat
     ty *= -1;
     tz *= -1;
 
-    // 5) Matrix in column-major-Layout (OpenGL-Konvention)
+    // 5) Matrix to column-major-Layout
     out[0] = u[0];
     out[4] = u[1];
     out[8] = u[2];

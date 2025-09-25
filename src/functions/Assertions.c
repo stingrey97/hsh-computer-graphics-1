@@ -13,7 +13,6 @@
 #include "Constants.h"
 #include "AppContext.h"
 
-// Macro for uniforms, must not be -1
 #define REQ_LOC(loc_) assert((loc_) >= 0)
 
 int isValidVector3f(const GLfloat vec[3])
@@ -75,25 +74,21 @@ int contextIsValidAndComplete(const AppContext *ctx)
 {
     assert(ctx != NULL);
 
-    // Window
     assert(ctx->window != NULL);
     assert(ctx->width > 0);
     assert(ctx->height > 0);
 
-    // Shader Programme/Objekte
     assert(ctx->programID != 0);
     assert(ctx->skyboxProgramID != 0);
     assert(ctx->skyboxVAO != 0);
     assert(ctx->skyboxTexture != 0);
 
-    // Kamera-Vektoren
     assert(isValidVector3f(ctx->eye));
     assert(isValidVector3f(ctx->look));
     assert(isValidVector3f(ctx->up));
     assert(vectorsAreDifferent(ctx->eye, ctx->look));
     assert(isNotZeroVector(ctx->up));
 
-    // Forward = look - eye darf nicht parallel zu up sein
     const GLfloat forward[3] = {
         ctx->look[0] - ctx->eye[0],
         ctx->look[1] - ctx->eye[1],
@@ -101,7 +96,6 @@ int contextIsValidAndComplete(const AppContext *ctx)
     assert(isNotZeroVector(forward));
     assert(vectorsNotParallel(forward, ctx->up));
 
-    // Uniform-Locations (dürfen 0 sein, aber nicht -1)
     REQ_LOC(ctx->MVLoc);
     REQ_LOC(ctx->MVPLoc);
     REQ_LOC(ctx->NormalMLoc);

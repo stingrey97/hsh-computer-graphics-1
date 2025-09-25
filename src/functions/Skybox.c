@@ -50,7 +50,6 @@ void initSkybox(AppContext *ctx)
 
     const float skyboxVertices[] =
         {
-            //   Coordinates
             -1.0f, -1.0f, 1.0f,
             1.0f, -1.0f, 1.0f,
             1.0f, -1.0f, -1.0f,
@@ -62,22 +61,21 @@ void initSkybox(AppContext *ctx)
 
     const unsigned int skyboxIndices[] =
         {
-            // Right
             1, 2, 6,
             6, 5, 1,
-            // Left
+
             0, 4, 7,
             7, 3, 0,
-            // Top
+
             4, 5, 6,
             6, 7, 4,
-            // Bottom
+
             0, 3, 2,
             2, 1, 0,
-            // Back
+
             0, 1, 5,
             5, 4, 0,
-            // Front
+
             3, 7, 6,
             6, 2, 3};
 
@@ -135,7 +133,6 @@ void drawSkybox(AppContext *ctx, GLfloat *V, GLfloat *P)
     glBindTexture(GL_TEXTURE_CUBE_MAP, ctx->skyboxTexture);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
-    // Reset state (keep currently bound program unchanged)
     glBindVertexArray(0);
     glDepthFunc(GL_LESS);
     glCullFace(GL_BACK);

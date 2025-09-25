@@ -124,7 +124,6 @@ void testeFunktionen(void)
     GLfloat V[16];
     identity(V);
 
-    // simple Translation um (1,2,3)
     V[12] = 1.f;
     V[13] = 2.f;
     V[14] = 3.f;
@@ -311,7 +310,6 @@ void testeFunktionen(void)
 
     printLine();
 
-    /* -------- mat4f_mul_vec4f -------- */
     float M_Scale[16] = {
         2.f, 0.f, 0.f, 0.f,
         0.f, 3.f, 0.f, 0.f,
@@ -335,7 +333,6 @@ void testeFunktionen(void)
 
     printLine();
 
-    /* -------- scale (vec3) -------- */
     float inIdScale[16];
     identity(inIdScale);
     float outScale[16];
@@ -360,7 +357,6 @@ void testeFunktionen(void)
 
     printLine();
 
-    /* -------- translate (vec3) -------- */
     float inIdTrans[16];
     identity(inIdTrans);
     float outTranslate[16];
@@ -385,7 +381,6 @@ void testeFunktionen(void)
 
     printLine();
 
-    /* -------- mat3_from_mat4 -------- */
     float M_T_S[16] = {
         2.f, 0.f, 0.f, 0.f,
         0.f, 3.f, 0.f, 0.f,
@@ -410,7 +405,6 @@ void testeFunktionen(void)
 
     printLine();
 
-    /* -------- mat3_inverse_transpose -------- */
     float outMat3InvT[9];
     float MAT3x3[16] = {
         2.f, 0.f, 0.f,
