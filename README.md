@@ -55,6 +55,11 @@
 ![Scene Overview](docs/screenshot_01.png)
 ![Glass Pass](docs/screenshot_glass.png)
 
+## Credits and special thanks to
+Sky-Box Cubemap / Texturen: https://freestylized.com/all-skybox/
+Models und Meshes (Slenderman, Baum, Hütte, Laterne): https://free3d.com
+Sounds: https://mixkit.co/free-sound-effects/click/
+
 ## Autoren
 
 Beverly Hermann,
